@@ -20,4 +20,4 @@ else:
 image = SegmentImage(fileName, similarity)
 image.imageAsSegments()
 image.colorAllSegments()
-image.imageData.show()
+image.imageData.save("out.jpg")

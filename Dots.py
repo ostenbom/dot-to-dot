@@ -25,7 +25,7 @@ class SegmentImage():
                     newSegment = self.makeSegmentOfSimilarPixels(i, j)
                     if len(newSegment) > 0:
                         self.segments.append(newSegment)
-        print (str(len(self.segments)) + "segments")
+        print (str(len(self.segments)) + " segments")
     
     
     def makeSegmentOfSimilarPixels(self, x, y):
