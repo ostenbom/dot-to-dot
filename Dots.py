@@ -2,6 +2,7 @@ from PIL import Image
 from operator import itemgetter
 
 SMALL_SEGMENT_PERCENT = 0.0003
+CONTIGUOUS_FACTOR = 12
 
 
 class SegmentImage():
@@ -158,6 +159,80 @@ class SegmentImage():
 
         return allTrue
             
+    def findAllSegmentCorners(self):
+        allSegmentCorners = []
+        for segment in self.segments:
+           segmentCorners = self.findSegmentCorners(segment)
+           allSegmentCorners.append(segmentCorners)
+
+        total = 0
+        for segment in allSegmentCorners:
+            total += len(segment)
+
+        print ( "Number of corners: " + str(total))
+
+        return allSegmentCorners
+
+    def findSegmentCorners(self, segment):
+        corners = []
+
+        segmentBoard = []
+        for i in range(self.width):
+            segmentBoard.append([False] * self.height)
+
+        for pixel in segment:
+            segmentBoard[pixel[0]][pixel[1]] = True
+
+        for pixel in segment:
+            x = pixel[0]
+            y = pixel[1]
+            contiguousPixels = self.getNumberOfContiguousPixles(x, y, segmentBoard)
+            if (contiguousPixels == 16):
+                pass
+            elif (contiguousPixels < 16 - CONTIGUOUS_FACTOR 
+                    or contiguousPixels > CONTIGUOUS_FACTOR):
+                corners.append((x, y))
+
+        return corners
+
+    def getNumberOfContiguousPixles(self, x, y, board):
+        circle = [
+            (x + 4, y - 1),
+            (x + 4, y),
+            (x + 4, y + 1),
+            (x - 4, y - 1),
+            (x - 4, y),
+            (x - 4, y + 1),
+            (x - 1, y + 4),
+            (x,     y + 4),
+            (x + 1, y + 4),
+            (x - 1, y - 4),
+            (x,     y - 4),
+            (x + 1, y - 4),
+            (x + 3, y + 3),
+            (x + 3, y - 3),
+            (x - 3, y + 3),
+            (x - 3, y - 3)
+        ]
+
+        containsAll = True
+        for pixel in circle:
+            if not self.boardContains(pixel[0], pixel[1], board):
+                containsAll = False
+
+        if not containsAll:
+            # Eight for straight
+            return 8
+
+        numberContiguous = 0
+        for pixel in circle:
+            x = pixel[0]
+            y = pixel[1]
+            
+            if board[x][y]:
+                numberContiguous += 1
+        
+        return numberContiguous
 
     def boardContains(self, x, y, board):
         inHeight = y >= 0 and y < len(board[0])
@@ -218,6 +293,16 @@ class SegmentImage():
         b = self.averageList(bs)
 
         return (r, g, b)
+
+    def plotAllSegmentCorners(self, segmentCorners):
+        for i in range(self.width):
+            for j in range(self.height):
+                self.image[i, j] = (0, 0, 0)
+
+        for segment in segmentCorners:
+            for point in segment:
+                self.image[point[0], point[1]] = (255, 255, 255)
+
 
     def averageList(self, l):
         average = sum(l) / len(l)
