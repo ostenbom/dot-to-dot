@@ -26,7 +26,7 @@ end = time.clock()
 print ("---- Segmentation time : " + str(end - start) + " ----")
 
 start = time.clock()
-#image.holeFillSegments()
+image.holeFillSegments()
 end = time.clock()
 print ("---- Hole fill time : " + str(end - start) + " ----")
 

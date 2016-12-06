@@ -89,13 +89,13 @@ class SegmentImage():
                 self.fillInSegmentHole(segment)
 
     def fillInSegmentHole(self, segment):
-        #sortedX = sorted(segment)
-        #minX = sortedX[0][0]
-        #maxX = sortedX[-1][0]
+        sortedX = sorted(segment)
+        minX = sortedX[0][0]
+        maxX = sortedX[-1][0]
 
-        #sortedY = sorted(segment, key = itemgetter(1))
-        #minY = sortedY[0][1]
-        #maxY = sortedY[-1][1]
+        sortedY = sorted(segment, key = itemgetter(1))
+        minY = sortedY[0][1]
+        maxY = sortedY[-1][1]
 
         segmentBoard = []
         for i in range(self.width):
@@ -106,12 +106,11 @@ class SegmentImage():
             y = pixel[1]
             segmentBoard[x][y] = True
 
-        for i in range(self.width):
-            for j in range(self.height):
+        for i in range(minX, maxX + 1):
+            for j in range(minY, maxY + 1):
                 if not segmentBoard[i][j]:
                     numberOfNeighbours = self.getTrueNeighboursCount(i, j, segmentBoard)
                     if numberOfNeighbours >= 5 or self.enclosedByTrue(i, j, segmentBoard):
-                        print("filling (" + str(i) + ", " + str(j) + ")")
                         segment.append((i, j))
 
 
