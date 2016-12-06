@@ -3,7 +3,7 @@ from operator import itemgetter
 
 SMALL_SEGMENT_PERCENT = 0.0003
 CONTIGUOUS_FACTOR = 12
-
+NUM_LARGE_SEGMENTS = 500
 
 class SegmentImage():
 
@@ -248,7 +248,7 @@ class SegmentImage():
     def colorLargestSegments(self):
         self.makeImageBlack()
         self.segments.sort(key = lambda l : len(l))
-        for segment in self.segments[-6:]:
+        for segment in self.segments[-NUM_LARGE_SEGMENTS:]:
             color = self.pickDifferentColor()
             self.colorSegment(segment, color)
 
