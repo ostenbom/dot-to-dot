@@ -31,10 +31,11 @@ end = time.clock()
 print ("---- Hole fill time : " + str(end - start) + " ----")
 
 start = time.clock()
-segmentCorners = image.findAllSegmentCorners()
+#segmentCorners = image.findAllSegmentCorners()
 end = time.clock()
 print ("---- Corner find time : " + str(end - start) + " ----")
 
 #image.colorAllSegments()
-image.plotAllSegmentCorners(segmentCorners)
+image.colorLargestSegments()
+#image.plotAllSegmentCorners(segmentCorners)
 image.imageData.save("out.jpg")

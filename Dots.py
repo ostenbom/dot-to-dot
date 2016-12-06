@@ -187,10 +187,7 @@ class SegmentImage():
             x = pixel[0]
             y = pixel[1]
             contiguousPixels = self.getNumberOfContiguousPixles(x, y, segmentBoard)
-            if (contiguousPixels == 16):
-                pass
-            elif (contiguousPixels < 16 - CONTIGUOUS_FACTOR 
-                    or contiguousPixels > CONTIGUOUS_FACTOR):
+            if contiguousPixels < 16 - CONTIGUOUS_FACTOR: 
                 corners.append((x, y))
 
         return corners
@@ -248,6 +245,13 @@ class SegmentImage():
             color = self.pickDifferentColor()
             self.colorSegment(segment, color)
 
+    def colorLargestSegments(self):
+        self.makeImageBlack()
+        self.segments.sort(key = lambda l : len(l))
+        for segment in self.segments[-6:]:
+            color = self.pickDifferentColor()
+            self.colorSegment(segment, color)
+
     def pickDifferentColor(self):
         self.counter = (self.counter + 1) % 7
         return {
@@ -295,14 +299,15 @@ class SegmentImage():
         return (r, g, b)
 
     def plotAllSegmentCorners(self, segmentCorners):
-        for i in range(self.width):
-            for j in range(self.height):
-                self.image[i, j] = (0, 0, 0)
-
+        self.makeImageBlack()
         for segment in segmentCorners:
             for point in segment:
                 self.image[point[0], point[1]] = (255, 255, 255)
 
+    def makeImageBlack(self):
+        for i in range(self.width):
+            for j in range(self.height):
+                self.image[i, j] = (0, 0, 0)
 
     def averageList(self, l):
         average = sum(l) / len(l)
