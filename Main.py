@@ -1,5 +1,6 @@
 import sys
 import time
+import copy
 
 from Dots import SegmentImage
 
@@ -31,11 +32,19 @@ end = time.clock()
 print ("---- Hole fill time : " + str(end - start) + " ----")
 
 start = time.clock()
-segmentCorners = image.findAllSegmentCorners()
+image.removeSegmentCenters()
+end = time.clock()
+print ("---- Center removal time : " + str(end - start) + " ----")
+
+start = time.clock()
+#segmentCorners = image.findAllSegmentCorners()
 end = time.clock()
 print ("---- Corner find time : " + str(end - start) + " ----")
 
-#image.colorAllSegments()
-image.colorLargestSegments()
-#image.plotAllSegmentCorners(segmentCorners)
-image.imageData.save("out.jpg")
+colorImage = copy.copy(image)
+colorImage.colorLargestSegments()
+colorImage.imageData.save("out_color_segments.jpg")
+
+#cornerImage = copy.copy(image)
+#cornerImage.plotAllSegmentCorners(segmentCorners)
+#cornerImage.imageData.save("out_corners.jpg")

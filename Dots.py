@@ -3,7 +3,7 @@ from operator import itemgetter
 
 SMALL_SEGMENT_PERCENT = 0.0003
 CONTIGUOUS_FACTOR = 12
-NUM_LARGE_SEGMENTS = 500
+NUM_LARGE_SEGMENTS = 300
 
 class SegmentImage():
 
@@ -115,6 +115,35 @@ class SegmentImage():
                         segment.append((i, j))
 
 
+    def removeSegmentCenters(self):
+        for segment in self.segments:
+            segmentLength = len(segment)
+            self.removeCenter(segment)
+            lengthAfterRemove = len(segment)
+
+    def removeCenter(self, segment):
+        segmentBoard = []
+        for i in range(self.width):
+            segmentBoard.append([False] * self.height)
+
+        for pixel in segment:
+            x = pixel[0]
+            y = pixel[1]
+            segmentBoard[x][y] = True
+        
+        pixelsToRemove = []
+        for pixel in segment:
+            x = pixel[0]
+            y = pixel[1]
+            numberOfNeighbours = self.getTrueNeighboursCount(x, y, segmentBoard)
+            if numberOfNeighbours > 5:
+                pixelsToRemove.append(pixel)
+
+        for pixel in pixelsToRemove:
+            segment.remove(pixel)
+
+        return segment
+        
     def getTrueNeighboursCount(self, x, y, board):
         neighbours = self.getNeighbours(x, y, board)
         trueNeighbours = 0
@@ -241,6 +270,7 @@ class SegmentImage():
         return self.boardContains(x, y, self.visitedPixels)
 
     def colorAllSegments(self):
+        self.makeImageBlack()
         for segment in self.segments:
             color = self.pickDifferentColor()
             self.colorSegment(segment, color)
