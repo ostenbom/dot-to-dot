@@ -1,4 +1,5 @@
 import sys
+import time
 
 from Dots import SegmentImage
 
@@ -18,6 +19,16 @@ else:
 
 
 image = SegmentImage(fileName, similarity)
+
+start = time.clock()
 image.imageAsSegments()
+end = time.clock()
+print ("---- Segmentation time : " + str(end - start) + " ----")
+
+start = time.clock()
+#image.holeFillSegments()
+end = time.clock()
+print ("---- Hole fill time : " + str(end - start) + " ----")
+
 image.colorAllSegments()
 image.imageData.save("out.jpg")
