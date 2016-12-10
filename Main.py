@@ -37,7 +37,7 @@ end = time.clock()
 print ("---- Center removal time : " + str(end - start) + " ----")
 
 start = time.clock()
-image.findDefiningPoints()
+image.findDefiningPoints(20)
 end = time.clock()
 print ("---- Defining points time : " + str(end - start) + " ----")
 
@@ -47,7 +47,7 @@ end = time.clock()
 print ("---- Corner find time : " + str(end - start) + " ----")
 
 colorImage = copy.copy(image)
-colorImage.colorLargestSegments()
+colorImage.colorAllSegments()
 colorImage.imageData.save("out_color_segments.jpg")
 
 #cornerImage = copy.copy(image)

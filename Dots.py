@@ -207,13 +207,15 @@ class SegmentImage():
 
         return allTrue
 
-    def findDefiningPoints(self):
+    def findDefiningPoints(self, minLineLength):
         for segment in self.segments:
-            self.removePointsAtSimilarAngle(segment)
+            trace = self.makeSegmentTrace(segment)
+            segment = self.makePointsFromTrace(trace, minLineLength)
 
-    def removePointsAtSimilarAngle(self, segment):
+    def makeSegmentTrace(self, segment):
         orderedSegment = []
         current = self.findMinimumPoint(segment)
+        first = current
         segment.remove(current)
         orderedSegment.append(current)
 
@@ -245,7 +247,41 @@ class SegmentImage():
             orderedSegment.append(nextPoint)
             current = nextPoint
 
-        import pdb; pdb.set_trace()
+        return orderedSegment
+
+    def makePointsFromTrace(self, trace, minLineLength):
+        points = []
+
+        if len(trace) >= 2:
+            prevPoint = trace.pop(0)
+            currentPoint = trace.pop(0)
+        else:
+            return trace
+
+        while len(trace) > 0:
+            while self.distanceBetween(prevPoint, currentPoint) < minLineLength and len(trace):
+                currentPoint = trace.pop(0)
+
+            points.append(prevPoint)
+            prevPoint = currentPoint
+            if len(trace):
+                currentPoint = trace.pop(0)
+
+        return points
+
+    def distanceBetween(self, first, second):
+        x1 = first[0]
+        x2 = second[0]
+
+        y1 = first[1]
+        y2 = second[1]
+        
+        deltaX = abs(x1 - x2)
+        deltaY = abs(y1 - y2)
+
+        distance = math.sqrt(float(deltaX * deltaX) + float(deltaY * deltaY))
+
+        return distance
 
     def angleBetween(self, p1, p2):
         x1 = p1[0]
@@ -266,9 +302,9 @@ class SegmentImage():
         elif x1 > x2 and y1 > y2:
             angle = 180 - angle
         elif x1 < x2 and y1 < y2:
-            angle = 360 - 90 - 180 - angle
+            angle = 360 - angle
         elif x1 > x2 and y1 < y2:
-            angle = 180 - angle
+            angle = 180 + angle
 
         return angle
     
@@ -278,7 +314,7 @@ class SegmentImage():
 
         minY = minPoint[1]
         amountOfMinimums = 1
-        while(sortedY[-amountOfMinimums][1] == minY):
+        while len(sortedY) >= amountOfMinimums and sortedY[-amountOfMinimums][1] == minY:
             amountOfMinimums += 1
 
         if amountOfMinimums > 2:
