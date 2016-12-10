@@ -1,8 +1,10 @@
 import sys
 import time
 import copy
+import itertools
 
 from Dots import SegmentImage
+from OutputImage import OutputImage
 
 arguments = len(sys.argv)
 
@@ -46,9 +48,17 @@ start = time.clock()
 end = time.clock()
 print ("---- Corner find time : " + str(end - start) + " ----")
 
-colorImage = copy.copy(image)
-colorImage.colorAllSegments()
-colorImage.imageData.save("out_color_segments.jpg")
+points = []
+for segment in image.segments:
+    for point in segment:
+        points.append(point)
+
+out = OutputImage(points, (image.width, image.height))
+out.saveImage()
+
+#colorImage = copy.copy(image)
+#colorImage.colorAllSegments()
+#colorImage.imageData.save("out_color_segments.jpg")
 
 #cornerImage = copy.copy(image)
 #cornerImage.plotAllSegmentCorners(segmentCorners)

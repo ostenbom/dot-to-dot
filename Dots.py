@@ -119,9 +119,7 @@ class SegmentImage():
 
     def removeSegmentCenters(self):
         for segment in self.segments:
-            segmentLength = len(segment)
             self.removeCenter(segment)
-            lengthAfterRemove = len(segment)
 
     def removeCenter(self, segment):
         segmentBoard = []
@@ -175,6 +173,8 @@ class SegmentImage():
         return self.getNeighboursInRadius(x, y, 1, board)
 
     def getNeighboursInRadius(self, x, y, radius, board):
+        if radius > 2:
+            print ("Radius: ", radius)
         neighbours = []
         for i in range(x - radius, x + radius + 1):
             for j in range(y - radius, y + radius + 1):
@@ -214,11 +214,50 @@ class SegmentImage():
 
     def makeSegmentTrace(self, segment):
         orderedSegment = []
+        segmentBoard = self.makeSegmentBoard(segment)
+
         current = self.findMinimumPoint(segment)
-        first = current
         segment.remove(current)
         orderedSegment.append(current)
 
+        nextPointsByAngle = self.nextPointInTraceByAdjacent(2, current, segmentBoard)
+        
+        nextPoint = nextPointsByAngle[0]
+        segment.remove(nextPoint)
+        orderedSegment.append(nextPoint)
+        current = nextPoint
+        
+        while len(segment) > 2:
+            nextPointsByAngle = self.nextPointInTraceByAdjacent(1, current, segmentBoard, segment, orderedSegment)
+            nextPoint = nextPointsByAngle[0]
+            segment.remove(nextPoint)
+            orderedSegment.append(nextPoint)
+            current = nextPoint
+
+        return orderedSegment
+    
+    def nextPointInTraceByAdjacent(self, directions, 
+            current, segmentBoard, 
+            segment = None, orderedSegment = None):
+        x = current[0]
+        y = current[1]
+        segmentBoard[x][y] = False
+
+        adjacentCells = 0
+        radius = 0
+        while adjacentCells < directions:
+            if radius > 20:
+                import pdb; pdb.set_trace()
+            radius += 1
+            adjacentCells = self.getTrueNeighboursInRadiusCount(x, y, radius, segmentBoard)
+
+        neighbours = self.getTrueNeighboursInRadius(x, y, radius, segmentBoard)
+
+        neighboursByAngle = sorted(neighbours, key = lambda p: self.angleBetween(current, p))
+
+        return neighboursByAngle
+
+    def makeSegmentBoard(self, segment):
         segmentBoard = []
         for i in range(self.width):
             segmentBoard.append([False] * self.height)
@@ -228,26 +267,7 @@ class SegmentImage():
             y = pixel[1]
             segmentBoard[x][y] = True
 
-        while len(segment) > 2:
-            x = current[0]
-            y = current[1]
-            segmentBoard[x][y] = False
-
-            adjacentCells = 0
-            radius = 1
-            while adjacentCells < 2:
-                adjacentCells = self.getTrueNeighboursInRadiusCount(x, y, radius, segmentBoard)
-                radius += 1
-
-            neighbours = self.getTrueNeighboursInRadius(x, y, radius, segmentBoard)
-
-            neighboursByAngle = sorted(neighbours, key = lambda p: self.angleBetween(current, p))
-            nextPoint = neighboursByAngle[0]
-            segment.remove(nextPoint)
-            orderedSegment.append(nextPoint)
-            current = nextPoint
-
-        return orderedSegment
+        return segmentBoard
 
     def makePointsFromTrace(self, trace, minLineLength):
         points = []
