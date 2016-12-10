@@ -37,6 +37,11 @@ end = time.clock()
 print ("---- Center removal time : " + str(end - start) + " ----")
 
 start = time.clock()
+image.findDefiningPoints()
+end = time.clock()
+print ("---- Defining points time : " + str(end - start) + " ----")
+
+start = time.clock()
 #segmentCorners = image.findAllSegmentCorners()
 end = time.clock()
 print ("---- Corner find time : " + str(end - start) + " ----")

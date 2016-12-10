@@ -1,3 +1,5 @@
+import math
+
 from PIL import Image
 from operator import itemgetter
 
@@ -145,7 +147,10 @@ class SegmentImage():
         return segment
         
     def getTrueNeighboursCount(self, x, y, board):
-        neighbours = self.getNeighbours(x, y, board)
+        return self.getTrueNeighboursInRadiusCount(x, y, 1, board)
+
+    def getTrueNeighboursInRadiusCount(self, x, y, radius, board):
+        neighbours = self.getNeighboursInRadius(x, y, radius, board)
         trueNeighbours = 0
         for neighbour in neighbours:
             x = neighbour[0]
@@ -155,10 +160,24 @@ class SegmentImage():
 
         return trueNeighbours
 
+    def getTrueNeighboursInRadius(self, x, y, radius, board):
+        neighbours = self.getNeighboursInRadius(x, y, radius, board)
+        trueNeighbours = []
+        for neighbour in neighbours:
+             x = neighbour[0]
+             y = neighbour[1]
+             if board[x][y]:
+                 trueNeighbours.append(neighbour)
+
+        return trueNeighbours
+
     def getNeighbours(self, x, y, board):
+        return self.getNeighboursInRadius(x, y, 1, board)
+
+    def getNeighboursInRadius(self, x, y, radius, board):
         neighbours = []
-        for i in range(x - 1, x + 2):
-            for j in range(y - 1, y + 2):
+        for i in range(x - radius, x + radius + 1):
+            for j in range(y - radius, y + radius + 1):
                 if ((not (i == x and j == y))
                         and self.boardContains(i, j, board)):
                     neighbours.append((i, j))
@@ -187,6 +206,88 @@ class SegmentImage():
                 allTrue = False
 
         return allTrue
+
+    def findDefiningPoints(self):
+        for segment in self.segments:
+            self.removePointsAtSimilarAngle(segment)
+
+    def removePointsAtSimilarAngle(self, segment):
+        orderedSegment = []
+        current = self.findMinimumPoint(segment)
+        segment.remove(current)
+        orderedSegment.append(current)
+
+        segmentBoard = []
+        for i in range(self.width):
+            segmentBoard.append([False] * self.height)
+
+        for pixel in segment:
+            x = pixel[0]
+            y = pixel[1]
+            segmentBoard[x][y] = True
+
+        while len(segment) > 2:
+            x = current[0]
+            y = current[1]
+            segmentBoard[x][y] = False
+
+            adjacentCells = 0
+            radius = 1
+            while adjacentCells < 2:
+                adjacentCells = self.getTrueNeighboursInRadiusCount(x, y, radius, segmentBoard)
+                radius += 1
+
+            neighbours = self.getTrueNeighboursInRadius(x, y, radius, segmentBoard)
+
+            neighboursByAngle = sorted(neighbours, key = lambda p: self.angleBetween(current, p))
+            nextPoint = neighboursByAngle[0]
+            segment.remove(nextPoint)
+            orderedSegment.append(nextPoint)
+            current = nextPoint
+
+        import pdb; pdb.set_trace()
+
+    def angleBetween(self, p1, p2):
+        x1 = p1[0]
+        x2 = p2[0]
+
+        y1 = p1[1]
+        y2 = p2[1]
+
+        deltaX = abs(x1 - x2)
+        deltaY = abs(y1 - y2)
+
+        if deltaX == 0:
+            return 90
+
+        angle = math.degrees(math.atan(float(deltaY) / float(deltaX)))
+        if x1 < x2 and y1 > y2:
+            pass
+        elif x1 > x2 and y1 > y2:
+            angle = 180 - angle
+        elif x1 < x2 and y1 < y2:
+            angle = 360 - 90 - 180 - angle
+        elif x1 > x2 and y1 < y2:
+            angle = 180 - angle
+
+        return angle
+    
+    def findMinimumPoint(self, segment):
+        sortedY = sorted(segment, key = itemgetter(1))
+        minPoint = sortedY[-1]
+
+        minY = minPoint[1]
+        amountOfMinimums = 1
+        while(sortedY[-amountOfMinimums][1] == minY):
+            amountOfMinimums += 1
+
+        if amountOfMinimums > 2:
+            minimums = sortedY[-amountOfMinimums:]
+            sortedX = sorted(minimums)
+            minPoint = sortedX[0]
+
+        return minPoint
+
             
     def findAllSegmentCorners(self):
         allSegmentCorners = []

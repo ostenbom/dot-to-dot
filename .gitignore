@@ -4,4 +4,4 @@ __pycache__/
 *$py.class
 
 # Vim
-.swp
+*.swp
