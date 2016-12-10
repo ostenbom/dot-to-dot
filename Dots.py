@@ -1,9 +1,11 @@
+import math
+
 from PIL import Image
 from operator import itemgetter
 
 SMALL_SEGMENT_PERCENT = 0.0003
 CONTIGUOUS_FACTOR = 12
-NUM_LARGE_SEGMENTS = 500
+NUM_LARGE_SEGMENTS = 300
 
 class SegmentImage():
 
@@ -115,8 +117,38 @@ class SegmentImage():
                         segment.append((i, j))
 
 
+    def removeSegmentCenters(self):
+        for segment in self.segments:
+            self.removeCenter(segment)
+
+    def removeCenter(self, segment):
+        segmentBoard = []
+        for i in range(self.width):
+            segmentBoard.append([False] * self.height)
+
+        for pixel in segment:
+            x = pixel[0]
+            y = pixel[1]
+            segmentBoard[x][y] = True
+        
+        pixelsToRemove = []
+        for pixel in segment:
+            x = pixel[0]
+            y = pixel[1]
+            numberOfNeighbours = self.getTrueNeighboursCount(x, y, segmentBoard)
+            if numberOfNeighbours > 5:
+                pixelsToRemove.append(pixel)
+
+        for pixel in pixelsToRemove:
+            segment.remove(pixel)
+
+        return segment
+        
     def getTrueNeighboursCount(self, x, y, board):
-        neighbours = self.getNeighbours(x, y, board)
+        return self.getTrueNeighboursInRadiusCount(x, y, 1, board)
+
+    def getTrueNeighboursInRadiusCount(self, x, y, radius, board):
+        neighbours = self.getNeighboursInRadius(x, y, radius, board)
         trueNeighbours = 0
         for neighbour in neighbours:
             x = neighbour[0]
@@ -126,10 +158,26 @@ class SegmentImage():
 
         return trueNeighbours
 
+    def getTrueNeighboursInRadius(self, x, y, radius, board):
+        neighbours = self.getNeighboursInRadius(x, y, radius, board)
+        trueNeighbours = []
+        for neighbour in neighbours:
+             x = neighbour[0]
+             y = neighbour[1]
+             if board[x][y]:
+                 trueNeighbours.append(neighbour)
+
+        return trueNeighbours
+
     def getNeighbours(self, x, y, board):
+        return self.getNeighboursInRadius(x, y, 1, board)
+
+    def getNeighboursInRadius(self, x, y, radius, board):
+        if radius > 2:
+            print ("Radius: ", radius)
         neighbours = []
-        for i in range(x - 1, x + 2):
-            for j in range(y - 1, y + 2):
+        for i in range(x - radius, x + radius + 1):
+            for j in range(y - radius, y + radius + 1):
                 if ((not (i == x and j == y))
                         and self.boardContains(i, j, board)):
                     neighbours.append((i, j))
@@ -158,6 +206,144 @@ class SegmentImage():
                 allTrue = False
 
         return allTrue
+
+    def findDefiningPoints(self, minLineLength):
+        for segment in self.segments:
+            trace = self.makeSegmentTrace(segment)
+            segment = self.makePointsFromTrace(trace, minLineLength)
+
+    def makeSegmentTrace(self, segment):
+        orderedSegment = []
+        segmentBoard = self.makeSegmentBoard(segment)
+
+        current = self.findMinimumPoint(segment)
+        segment.remove(current)
+        orderedSegment.append(current)
+
+        nextPointsByAngle = self.nextPointInTraceByAdjacent(2, current, segmentBoard)
+        
+        nextPoint = nextPointsByAngle[0]
+        segment.remove(nextPoint)
+        orderedSegment.append(nextPoint)
+        current = nextPoint
+        
+        while len(segment) > 2:
+            nextPointsByAngle = self.nextPointInTraceByAdjacent(1, current, segmentBoard, segment, orderedSegment)
+            nextPoint = nextPointsByAngle[0]
+            segment.remove(nextPoint)
+            orderedSegment.append(nextPoint)
+            current = nextPoint
+
+        return orderedSegment
+    
+    def nextPointInTraceByAdjacent(self, directions, 
+            current, segmentBoard, 
+            segment = None, orderedSegment = None):
+        x = current[0]
+        y = current[1]
+        segmentBoard[x][y] = False
+
+        adjacentCells = 0
+        radius = 0
+        while adjacentCells < directions:
+            if radius > 20:
+                import pdb; pdb.set_trace()
+            radius += 1
+            adjacentCells = self.getTrueNeighboursInRadiusCount(x, y, radius, segmentBoard)
+
+        neighbours = self.getTrueNeighboursInRadius(x, y, radius, segmentBoard)
+
+        neighboursByAngle = sorted(neighbours, key = lambda p: self.angleBetween(current, p))
+
+        return neighboursByAngle
+
+    def makeSegmentBoard(self, segment):
+        segmentBoard = []
+        for i in range(self.width):
+            segmentBoard.append([False] * self.height)
+
+        for pixel in segment:
+            x = pixel[0]
+            y = pixel[1]
+            segmentBoard[x][y] = True
+
+        return segmentBoard
+
+    def makePointsFromTrace(self, trace, minLineLength):
+        points = []
+
+        if len(trace) >= 2:
+            prevPoint = trace.pop(0)
+            currentPoint = trace.pop(0)
+        else:
+            return trace
+
+        while len(trace) > 0:
+            while self.distanceBetween(prevPoint, currentPoint) < minLineLength and len(trace):
+                currentPoint = trace.pop(0)
+
+            points.append(prevPoint)
+            prevPoint = currentPoint
+            if len(trace):
+                currentPoint = trace.pop(0)
+
+        return points
+
+    def distanceBetween(self, first, second):
+        x1 = first[0]
+        x2 = second[0]
+
+        y1 = first[1]
+        y2 = second[1]
+        
+        deltaX = abs(x1 - x2)
+        deltaY = abs(y1 - y2)
+
+        distance = math.sqrt(float(deltaX * deltaX) + float(deltaY * deltaY))
+
+        return distance
+
+    def angleBetween(self, p1, p2):
+        x1 = p1[0]
+        x2 = p2[0]
+
+        y1 = p1[1]
+        y2 = p2[1]
+
+        deltaX = abs(x1 - x2)
+        deltaY = abs(y1 - y2)
+
+        if deltaX == 0:
+            return 90
+
+        angle = math.degrees(math.atan(float(deltaY) / float(deltaX)))
+        if x1 < x2 and y1 > y2:
+            pass
+        elif x1 > x2 and y1 > y2:
+            angle = 180 - angle
+        elif x1 < x2 and y1 < y2:
+            angle = 360 - angle
+        elif x1 > x2 and y1 < y2:
+            angle = 180 + angle
+
+        return angle
+    
+    def findMinimumPoint(self, segment):
+        sortedY = sorted(segment, key = itemgetter(1))
+        minPoint = sortedY[-1]
+
+        minY = minPoint[1]
+        amountOfMinimums = 1
+        while len(sortedY) >= amountOfMinimums and sortedY[-amountOfMinimums][1] == minY:
+            amountOfMinimums += 1
+
+        if amountOfMinimums > 2:
+            minimums = sortedY[-amountOfMinimums:]
+            sortedX = sorted(minimums)
+            minPoint = sortedX[0]
+
+        return minPoint
+
             
     def findAllSegmentCorners(self):
         allSegmentCorners = []
@@ -241,6 +427,7 @@ class SegmentImage():
         return self.boardContains(x, y, self.visitedPixels)
 
     def colorAllSegments(self):
+        self.makeImageBlack()
         for segment in self.segments:
             color = self.pickDifferentColor()
             self.colorSegment(segment, color)
