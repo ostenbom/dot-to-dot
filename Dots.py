@@ -116,6 +116,28 @@ class SegmentImage():
                     if numberOfNeighbours >= 5 or self.enclosedByTrue(i, j, segmentBoard):
                         segment.append((i, j))
 
+    def enclosedByTrue(self, x, y, board):
+        enclosers = [
+            (x + 1, y),
+            (x - 1, y),
+            (x, y + 1),
+            (x, y - 1)
+        ]
+
+        containsAll = True
+        for pixel in enclosers:
+            if not self.boardContains(pixel[0], pixel[1], board):
+                containsAll = False
+
+        if not containsAll:
+            return False
+
+        allTrue = True 
+        for pixel in enclosers:
+            if not board[pixel[0]][pixel[1]]:
+                allTrue = False
+
+        return allTrue
 
     def removeSegmentCenters(self):
         for segment in self.segments:
@@ -173,8 +195,6 @@ class SegmentImage():
         return self.getNeighboursInRadius(x, y, 1, board)
 
     def getNeighboursInRadius(self, x, y, radius, board):
-        if radius > 2:
-            print ("Radius: ", radius)
         neighbours = []
         for i in range(x - radius, x + radius + 1):
             for j in range(y - radius, y + radius + 1):
@@ -184,35 +204,21 @@ class SegmentImage():
 
         return neighbours
 
-    def enclosedByTrue(self, x, y, board):
-        enclosers = [
-            (x + 1, y),
-            (x - 1, y),
-            (x, y + 1),
-            (x, y - 1)
-        ]
-
-        containsAll = True
-        for pixel in enclosers:
-            if not self.boardContains(pixel[0], pixel[1], board):
-                containsAll = False
-
-        if not containsAll:
-            return False
-
-        allTrue = True 
-        for pixel in enclosers:
-            if not board[pixel[0]][pixel[1]]:
-                allTrue = False
-
-        return allTrue
-
     def findDefiningPoints(self, minLineLength):
-        for segment in self.segments:
+        newSegments = []
+        while len(self.segments):
+            segment = self.segments.pop(0)
             trace = self.makeSegmentTrace(segment)
-            segment = self.makePointsFromTrace(trace, minLineLength)
+            if len(trace):
+                newSegment = self.makePointsFromTrace(trace, minLineLength)
+                newSegments.append(newSegment)
+
+        self.segments = newSegments
 
     def makeSegmentTrace(self, segment):
+        if len(segment) < 4:
+            return segment
+
         orderedSegment = []
         segmentBoard = self.makeSegmentBoard(segment)
 
@@ -220,19 +226,28 @@ class SegmentImage():
         segment.remove(current)
         orderedSegment.append(current)
 
-        nextPointsByAngle = self.nextPointInTraceByAdjacent(2, current, segmentBoard)
+        nextPointsByAngle = self.nextPointInTraceByAdjacent(2, current, segmentBoard, segment, orderedSegment)
+        if not nextPointsByAngle:
+            return []
         
         nextPoint = nextPointsByAngle[0]
         segment.remove(nextPoint)
         orderedSegment.append(nextPoint)
         current = nextPoint
         
+        radiusTooLarge = False
         while len(segment) > 2:
             nextPointsByAngle = self.nextPointInTraceByAdjacent(1, current, segmentBoard, segment, orderedSegment)
+            if not nextPointsByAngle:
+                radiusTooLarge = True
+                break
             nextPoint = nextPointsByAngle[0]
             segment.remove(nextPoint)
             orderedSegment.append(nextPoint)
             current = nextPoint
+        
+        if radiusTooLarge:
+            self.segments.append(segment)
 
         return orderedSegment
     
@@ -246,8 +261,8 @@ class SegmentImage():
         adjacentCells = 0
         radius = 0
         while adjacentCells < directions:
-            if radius > 20:
-                import pdb; pdb.set_trace()
+            if radius > 50:
+                return
             radius += 1
             adjacentCells = self.getTrueNeighboursInRadiusCount(x, y, radius, segmentBoard)
 
@@ -302,6 +317,15 @@ class SegmentImage():
         distance = math.sqrt(float(deltaX * deltaX) + float(deltaY * deltaY))
 
         return distance
+
+    def lineAngle(self, p1, p2, p3):
+        a = self.distanceBetween(p1, p2)
+        b = self.distanceBetween(p2, p3)
+        c = self.distanceBetween(p1, p3)
+        if a == 0 or b == 0:
+            return 90
+        angle = math.degrees(math.acos(float(c * c - a * a - b * b) / float(-2 * a * b)))
+        return angle
 
     def angleBetween(self, p1, p2):
         x1 = p1[0]

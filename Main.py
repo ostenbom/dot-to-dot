@@ -33,13 +33,17 @@ image.holeFillSegments()
 end = time.clock()
 print ("---- Hole fill time : " + str(end - start) + " ----")
 
+colorImage = copy.copy(image)
+colorImage.colorLargestSegments()
+colorImage.imageData.save("out_color_segments.jpg")
+
 start = time.clock()
 image.removeSegmentCenters()
 end = time.clock()
 print ("---- Center removal time : " + str(end - start) + " ----")
 
 start = time.clock()
-image.findDefiningPoints(20)
+image.findDefiningPoints(60)
 end = time.clock()
 print ("---- Defining points time : " + str(end - start) + " ----")
 
@@ -49,16 +53,16 @@ end = time.clock()
 print ("---- Corner find time : " + str(end - start) + " ----")
 
 points = []
-for segment in image.segments:
+
+image.segments.sort(key = lambda l : len(l))
+for segment in image.segments[-50:]:
     for point in segment:
         points.append(point)
 
-out = OutputImage(points, (image.width, image.height))
+print ("---- Points in image: " + str(len(points)) + " ----")
+out = OutputImage(points, (image.width, image.height), True)
 out.saveImage()
 
-#colorImage = copy.copy(image)
-#colorImage.colorAllSegments()
-#colorImage.imageData.save("out_color_segments.jpg")
 
 #cornerImage = copy.copy(image)
 #cornerImage.plotAllSegmentCorners(segmentCorners)
