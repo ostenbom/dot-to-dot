@@ -4,20 +4,26 @@ NUM_LARGE_SEGMENTS = 300
 
 class IntermediateImage():
 
-    def __init__(self, fileName, similarity, segments):
-        self.imageData = Image.open(fileName)
-        self.width = self.imageData.width
-        self.height = self.imageData.height
+    def __init__(self, segments, width, height):
+        self.width = width
+        self.height = height
         self.size = self.width * self.height
 
-        self.image = self.imageData.load()
+        self.image = Image.new("RGB", (width, height))
+        self.image.load()
 
-        if isinstace(segments, list):
+        if isinstance(segments, list):
             self.segments = segments
         else:
             self.segments = [segments]
 
         self.counter = 0
+
+    def saveImage(self, fileName):
+        self.image.save(fileName)
+
+    def showImage(self):
+        self.image.show()
 
     def colorAllSegments(self):
         self.makeImageBlack()
@@ -53,20 +59,14 @@ class IntermediateImage():
             color = self.segmentAverageColor(segment)
 
         for pixel in segment:
-            x = pixel[0]
-            y = pixel[1]
-
-            self.image[x, y] = color
+            self.image.putpixel(pixel, color)
 
     def segmentAverageColor(self, segment):
         rs = []
         gs = []
         bs = []
         for pixel in segment:
-            x = pixel[0]
-            y = pixel[1]
-
-            color = self.image[x, y]
+            color = self.image.getpixel(pixel)
 
             rs.append(color[0])
             gs.append(color[1])
@@ -81,7 +81,7 @@ class IntermediateImage():
     def makeImageBlack(self):
         for i in range(self.width):
             for j in range(self.height):
-                self.image[i, j] = (0, 0, 0)
+                self.image.putpixel((i, j), (0, 0, 0))
 
     def averageList(self, l):
         average = sum(l) / len(l)

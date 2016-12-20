@@ -8,6 +8,7 @@ from SegmentImage import SegmentImage
 from SegmentHoleFilling import SegmentHoleFilling
 from SegmentCenterRemoval import SegmentCenterRemoval
 from TraceFollower import TraceFollower
+from IntermediateImage import IntermediateImage
 from OutputImage import OutputImage
 
 arguments = len(sys.argv)
@@ -39,6 +40,10 @@ start = time.clock()
 filledSegments = holeFilling.getFilledSegments()
 end = time.clock()
 print ("---- Hole fill time : " + str(end - start) + " ----")
+
+intermediate = IntermediateImage(filledSegments, width, height)
+intermediate.colorLargestSegments()
+intermediate.saveImage("segments.jpg")
 
 centerRemover = SegmentCenterRemoval(filledSegments, width, height)
 
