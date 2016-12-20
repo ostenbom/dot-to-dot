@@ -31,6 +31,7 @@ class TraceFollower():
 
         orderedSegment = []
         segmentBoard = SegmentBoard(self.width, self.height)
+        segmentBoard.markTruePoints(segment)
 
         current = self.findMinimumPoint(segment)
         segment.remove(current)
@@ -63,7 +64,7 @@ class TraceFollower():
 
     def nextPointInTraceByAdjacent(self, directions,
             current, segmentBoard,
-            segment = None, orderedSegment = None):
+            segment, orderedSegment):
         segmentBoard.markFalsePoint(current)
         x = current[0]
         y = current[1]
