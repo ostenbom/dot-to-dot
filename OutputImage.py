@@ -29,6 +29,11 @@ class OutputImage():
         else:
             self.drawPoints()
 
+    def saveImage(self):
+        self.image.save("out.jpg")
+
+    def showImage(self):
+        self.image.show()
 
     def drawLines(self):
         i = 1
@@ -68,6 +73,3 @@ class OutputImage():
         x += 2
         y += 2
         self.draw.text((x, y), str(number), fill=(0, 0, 0), font=self.font)
-
-    def saveImage(self):
-        self.image.save("out.jpg")

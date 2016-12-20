@@ -43,6 +43,7 @@ print ("---- Hole fill time : " + str(end - start) + " ----")
 
 intermediate = IntermediateImage(filledSegments, width, height)
 intermediate.colorLargestSegments()
+intermediate.showImage()
 intermediate.saveImage("segments.jpg")
 
 centerRemover = SegmentCenterRemoval(filledSegments, width, height)
@@ -69,6 +70,7 @@ for segment in dottedSegments[-50:]:
 
 print ("---- Points in image: " + str(len(points)) + " ----")
 out = OutputImage(points, (width, height), True)
+out.showImage()
 out.saveImage()
 
 
