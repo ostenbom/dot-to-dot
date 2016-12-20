@@ -1,5 +1,4 @@
 from PIL import Image, ImageDraw, ImageFont
-from operator import itemgetter
 
 BASE_IMAGE_WIDTH = 5000
 
@@ -16,8 +15,8 @@ class OutputImage():
 
         self.xScaling = float(BASE_IMAGE_WIDTH) / float(originalWidth)
         self.yScaling = float(imageHeight) / float(originalHeight)
-        
-        print ("Dimensions: (" + str(BASE_IMAGE_WIDTH) + ", " + str(imageHeight) + ")") 
+
+        print ("Dimensions: (" + str(BASE_IMAGE_WIDTH) + ", " + str(imageHeight) + ")")
 
         self.image = Image.new("RGB", (BASE_IMAGE_WIDTH, int(imageHeight)), color=(255, 255, 255))
 
@@ -72,4 +71,3 @@ class OutputImage():
 
     def saveImage(self):
         self.image.save("out.jpg")
-
