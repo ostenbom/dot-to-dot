@@ -8,6 +8,7 @@ from SegmentImage import SegmentImage
 from SegmentHoleFilling import SegmentHoleFilling
 from SegmentCenterRemoval import SegmentCenterRemoval
 from TraceFollower import TraceFollower
+from TraceConnecter import TraceConnecter
 from IntermediateImage import IntermediateImage
 from OutputImage import OutputImage
 
@@ -61,12 +62,8 @@ dottedSegments = traceFollower.getDottedSegments()
 end = time.clock()
 print ("---- Defining points time : " + str(end - start) + " ----")
 
-points = []
-
-dottedSegments.sort(key = lambda l : len(l))
-for segment in dottedSegments[-50:]:
-    for point in segment:
-        points.append(point)
+connecter = TraceConnecter(dottedSegments, width, height)
+points = connecter.getConnectedTraces()
 
 print ("---- Points in image: " + str(len(points)) + " ----")
 out = OutputImage(points, (width, height), True)
