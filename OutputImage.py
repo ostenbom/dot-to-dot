@@ -58,7 +58,7 @@ class OutputImage():
         y1 = p1[1] * self.yScaling
         y2 = p2[1] * self.yScaling
 
-        self.draw.line([(x1, y1), (x2, y2)], fill=color, width=1)
+        self.draw.line([(x1, y1), (x2, y2)], fill=color, width=2)
 
     def drawPoints(self):
         i = 1
