@@ -77,7 +77,7 @@ class OutputImage():
     def drawPointWithNumber(self, point, number, color):
         x = point[0] * self.xScaling
         y = point[1] * self.yScaling
-        self.draw.point((x, y), fill=color)
+        self.draw.ellipse([x - 2, y - 2, x + 2, y + 2], fill=color)
         x += 2
         y += 2
         self.draw.text((x, y), str(number), fill=color, font=self.font)
