@@ -24,6 +24,8 @@ def lineAngle(p1, p2, p3):
     return angle
 
 def angleBetween(p1, p2):
+    assert p1 != p2
+
     x1 = p1[0]
     x2 = p2[0]
 
@@ -34,12 +36,15 @@ def angleBetween(p1, p2):
     deltaY = abs(y1 - y2)
 
     if deltaX == 0:
-        return 90
+        if y1 > y2:
+            return 90
+        else:
+            return 270
 
     angle = math.degrees(math.atan(float(deltaY) / float(deltaX)))
     if x1 < x2 and y1 > y2:
         pass
-    elif x1 > x2 and y1 > y2:
+    elif x1 > x2 and y1 >= y2:
         angle = 180 - angle
     elif x1 < x2 and y1 < y2:
         angle = 360 - angle
