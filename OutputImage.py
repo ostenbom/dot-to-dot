@@ -1,6 +1,8 @@
 from PIL import Image, ImageDraw, ImageFont
 
 BASE_IMAGE_WIDTH = 5000
+NUMBERS_PER_COLOUR = 100
+COLOURS = [(0, 0, 200), (50, 50, 50), (200, 0, 200), (200, 0, 0), (200, 100, 0), (200, 200, 0), (0, 200, 0), (0, 200, 200)]
 
 class OutputImage():
 
@@ -24,6 +26,8 @@ class OutputImage():
 
         self.font = ImageFont.truetype("open-sans.ttf", 12)
 
+        self.colorIndex = 0
+
         if drawLines:
             self.drawLines()
         else:
@@ -37,15 +41,16 @@ class OutputImage():
 
     def drawLines(self):
         i = 1
+        color = self.pickNextColor()
         prev = self.points.pop(0)
-        self.drawPointWithNumber(prev, i)
-
-        color = (0, 0, 0)
+        self.drawPointWithNumber(prev, i, color)
 
         while len(self.points):
+            if i % NUMBERS_PER_COLOUR == 0:
+                color = self.pickNextColor()
             current = self.points.pop(0)
             self.drawLineBetweenPoints(prev, current)
-            self.drawPointWithNumber(current, i)
+            self.drawPointWithNumber(current, i, color)
             prev = current
             i += 1
 
@@ -62,14 +67,22 @@ class OutputImage():
 
     def drawPoints(self):
         i = 1
+        color = self.pickNextColor
         for point in self.points:
-            self.drawPointWithNumber(point, i)
+            if i % NUMBERS_PER_COLOUR == 0:
+                color = self.pickNextColor
+            self.drawPointWithNumber(point, i, color)
             i += 1
 
-    def drawPointWithNumber(self, point, number):
+    def drawPointWithNumber(self, point, number, color):
         x = point[0] * self.xScaling
         y = point[1] * self.yScaling
-        self.draw.point((x, y), fill=(0, 0, 0))
+        self.draw.point((x, y), fill=color)
         x += 2
         y += 2
-        self.draw.text((x, y), str(number), fill=(0, 0, 0), font=self.font)
+        self.draw.text((x, y), str(number), fill=color, font=self.font)
+
+    def pickNextColor(self):
+        color = COLOURS[self.colorIndex]
+        self.colorIndex = (self.colorIndex + 1) % 8
+        return color
