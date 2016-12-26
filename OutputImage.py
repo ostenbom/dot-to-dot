@@ -44,6 +44,7 @@ class OutputImage():
         color = self.pickNextColor()
         prev = self.points.pop(0)
         self.drawPointWithNumber(prev, i, color)
+        i += 1
 
         while len(self.points):
             if i % NUMBERS_PER_COLOUR == 0:
@@ -75,9 +76,14 @@ class OutputImage():
             i += 1
 
     def drawPointWithNumber(self, point, number, color):
+        if number == 1:
+            pointSize = 4
+        else:
+            pointSize = 2
+
         x = point[0] * self.xScaling
         y = point[1] * self.yScaling
-        self.draw.ellipse([x - 2, y - 2, x + 2, y + 2], fill=color)
+        self.draw.ellipse([x - pointSize, y - pointSize, x + pointSize, y + pointSize], fill=color)
         x += 2
         y += 2
         self.draw.text((x, y), str(number), fill=color, font=self.font)
