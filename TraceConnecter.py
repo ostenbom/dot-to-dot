@@ -7,7 +7,7 @@ from ortools.constraint_solver import routing_enums_pb2
 from DistanceUtils import distanceBetween, angleBetween
 from Segment import Segment
 
-MAX_SEGMENTS = 50
+MAX_SEGMENTS = 100
 
 class TraceConnecter():
 

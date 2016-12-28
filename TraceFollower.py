@@ -1,8 +1,10 @@
 import math
+import sys
 from operator import itemgetter
 
 from SegmentBoard import SegmentBoard
 from DistanceUtils import distanceBetween, angleBetween
+from IntermediateImage import IntermediateImage
 
 class TraceFollower():
 
@@ -26,42 +28,111 @@ class TraceFollower():
 
         return newSegments
 
-    def makeSegmentTrace(self, segment):
-        if len(segment) < 4:
-            return segment
-
-        orderedSegment = []
+    def findSingleTrace(self, segment):
+        trace = []
         segmentBoard = SegmentBoard(self.width, self.height)
         segmentBoard.markTruePoints(segment)
 
         current = self.findMinimumPoint(segment)
         segment.remove(current)
-        orderedSegment.append(current)
+        trace.append(current)
 
-        nextPointsByAngle = self.nextPointInTraceByAdjacent(2, current, segmentBoard, segment, orderedSegment)
-        if not nextPointsByAngle:
+        nextPoint = self.nextPointInTraceByAdjacent(2, current, segmentBoard, segment, trace)
+        if not nextPoint:
+            # TODO: Explore the impacts of this edge case
             return []
 
-        nextPoint = nextPointsByAngle[0]
         segment.remove(nextPoint)
-        orderedSegment.append(nextPoint)
+        trace.append(nextPoint)
         current = nextPoint
 
-        radiusTooLarge = False
-        while len(segment) > 2:
-            nextPointsByAngle = self.nextPointInTraceByAdjacent(1, current, segmentBoard, segment, orderedSegment)
-            if not nextPointsByAngle:
-                radiusTooLarge = True
+        lookingForFirstTrace = True
+        while True:
+            nextPoint = self.nextPointInTraceByAdjacent(1, current, segmentBoard, segment, trace)
+            if not nextPoint:
                 break
-            nextPoint = nextPointsByAngle[0]
             segment.remove(nextPoint)
-            orderedSegment.append(nextPoint)
+            trace.append(nextPoint)
             current = nextPoint
 
-        if radiusTooLarge:
-            self.segments.append(segment)
+        return trace
+
+    def makeSegmentTrace(self, segment):
+        if len(segment) < 4:
+            return segment
+
+        firstTrace = self.findSingleTrace(segment)
+        if not len(firstTrace):
+            return firstTrace
+        orderedSegment = self.appendRemainingTraces(firstTrace, segment)
 
         return orderedSegment
+
+    def appendRemainingTraces(self, baseTrace, remaining):
+        baseTraceBoard = SegmentBoard(self.width, self.height)
+        baseTraceBoard.markTruePoints(baseTrace)
+
+        addLaterTraces = []
+
+        while len(remaining):
+            nextTrace = self.findSingleTrace(remaining)
+            if len(nextTrace):
+                firstPoint = nextTrace[0]
+                minBetween = self.findMinimumDistance(nextTrace, baseTrace)
+                minDistance = minBetween[2]
+                closest = minBetween[1]
+                if minDistance > 50:
+                    if len(nextTrace) > 25:
+                        addLaterTraces.append(nextTrace)
+                else:
+                    where = baseTrace.index(closest)
+
+                    while len(nextTrace):
+                        point = nextTrace.pop()
+                        baseTrace.insert(where, point)
+
+                    baseTraceBoard.markTruePoints(nextTrace)
+
+        while len(addLaterTraces):
+            trace = addLaterTraces.pop(0)
+            firstPoint = trace[0]
+            minBetween = self.findMinimumDistance(trace, baseTrace)
+            minDistance = minBetween[2]
+            closest = minBetween[1]
+            if minDistance > 50:
+                addLaterTraces.append(trace)
+            else:
+                where = baseTrace.index(closest)
+
+                while len(nextTrace):
+                    point = trace.pop()
+                    baseTrace.insert(where, point)
+
+                baseTraceBoard.markTruePoints(nextTrace)
+
+        return baseTrace
+
+    def findClosestPoint(self, point, board):
+        x = point[0]
+        y = point[1]
+
+        adjacent = 0
+        radius = 0
+        while not adjacent:
+            if radius > 50:
+                return
+            radius += 1
+            adjacent = board.getTrueNeighboursInRadiusCount(x, y, radius)
+
+        closestNeighbours = board.getTrueNeighboursInRadius(x, y, radius)
+        closestNeighbours = sorted(closestNeighbours, key = lambda p: distanceBetween(point, p))
+
+        return closestNeighbours[0]
+
+    def showIntermediateSegments(self, segment, orderedSegment):
+        intermediate = IntermediateImage([segment, orderedSegment], self.width, self.height)
+        intermediate.colorAllSegments()
+        intermediate.showImage()
 
     def nextPointInTraceByAdjacent(self, directions,
             current, segmentBoard,
@@ -73,7 +144,8 @@ class TraceFollower():
         adjacentCells = 0
         radius = 0
         while adjacentCells < directions:
-            if radius > 50:
+            if radius > 20:
+                print ("Radius large warning", current)
                 return
             radius += 1
             adjacentCells = segmentBoard.getTrueNeighboursInRadiusCount(x, y, radius)
@@ -82,7 +154,7 @@ class TraceFollower():
 
         neighboursByAngle = sorted(neighbours, key = lambda p: angleBetween(current, p))
 
-        return neighboursByAngle
+        return neighboursByAngle[0]
 
     def makePointsFromTrace(self, trace, minLineLength):
         points = []
@@ -119,3 +191,17 @@ class TraceFollower():
             minPoint = sortedX[0]
 
         return minPoint
+
+    def findMinimumDistance(self, first, second):
+        minDistance = sys.maxint
+        minFrom = None
+        minTo = None
+        for i in first:
+            for j in second:
+                distance = distanceBetween(i, j)
+                if distance < minDistance:
+                    minDistance = distance
+                    minFrom = i
+                    minTo = j
+
+        return (minFrom, minTo, minDistance)
