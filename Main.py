@@ -54,8 +54,7 @@ outlines = centerRemover.getSegmentOutlines()
 end = time.clock()
 print ("---- Center removal time : " + str(end - start) + " ----")
 
-minLineLength = 10
-traceFollower = TraceFollower(outlines, width, height, minLineLength)
+traceFollower = TraceFollower(outlines, width, height)
 
 start = time.clock()
 dottedSegments = traceFollower.getDottedSegments()

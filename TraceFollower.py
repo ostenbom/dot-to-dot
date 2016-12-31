@@ -3,27 +3,30 @@ import sys
 from operator import itemgetter
 
 from SegmentBoard import SegmentBoard
-from DistanceUtils import distanceBetween, angleBetween
+from DistanceUtils import distanceBetween, angleBetween, lineAngle
 from IntermediateImage import IntermediateImage
+
+MIN_LINE_LENGTH = 10 
+MAX_LINE_LENGTH = 100
+
 
 class TraceFollower():
 
-    def __init__(self, outlines, width, height, minLineLength):
+    def __init__(self, outlines, width, height):
         self.segments = outlines
         self.width = width
         self.height = height
-        self.minLineLength = minLineLength
 
     def getDottedSegments(self):
-        return self.findDefiningPoints(self.minLineLength)
+        return self.findDefiningPoints()
 
-    def findDefiningPoints(self, minLineLength):
+    def findDefiningPoints(self):
         newSegments = []
         while len(self.segments):
             segment = self.segments.pop(0)
             trace = self.makeSegmentTrace(segment)
             if len(trace):
-                newSegment = self.makePointsFromTrace(trace, minLineLength)
+                newSegment = self.makePointsFromTrace(trace)
                 newSegments.append(newSegment)
 
         return newSegments
@@ -99,16 +102,13 @@ class TraceFollower():
             minBetween = self.findMinimumDistance(trace, baseTrace)
             minDistance = minBetween[2]
             closest = minBetween[1]
-            if minDistance > 50:
-                addLaterTraces.append(trace)
-            else:
-                where = baseTrace.index(closest)
+            where = baseTrace.index(closest)
 
-                while len(nextTrace):
-                    point = trace.pop()
-                    baseTrace.insert(where, point)
+            while len(nextTrace):
+                point = trace.pop()
+                baseTrace.insert(where, point)
 
-                baseTraceBoard.markTruePoints(nextTrace)
+            baseTraceBoard.markTruePoints(nextTrace)
 
         return baseTrace
 
@@ -156,25 +156,44 @@ class TraceFollower():
 
         return neighboursByAngle[0]
 
-    def makePointsFromTrace(self, trace, minLineLength):
+    def makePointsFromTrace(self, trace):
         points = []
 
-        if len(trace) >= 2:
+        if len(trace) >= 3:
             prevPoint = trace.pop(0)
             currentPoint = trace.pop(0)
+            nextPoint = trace.pop(0)
         else:
             return trace
 
         while len(trace) > 0:
-            while distanceBetween(prevPoint, currentPoint) < minLineLength and len(trace):
-                currentPoint = trace.pop(0)
+            while not self.shouldPickPoint(prevPoint, currentPoint, nextPoint) and len(trace):
+                currentPoint = nextPoint
+                nextPoint = trace.pop(0)
 
             points.append(prevPoint)
             prevPoint = currentPoint
             if len(trace):
-                currentPoint = trace.pop(0)
+                currentPoint = nextPoint
+                nextPoint = trace.pop(0)
 
         return points
+
+    def shouldPickPoint(self, prev, current, nextPoint):
+        distance = distanceBetween(prev, current)
+        if distance < MIN_LINE_LENGTH:
+            return False
+
+        if distance > MAX_LINE_LENGTH:
+            return True
+
+        angleOfPoint = lineAngle(prev, current, nextPoint)
+        if angleOfPoint > 170 and angleOfPoint < 190:
+            print ("Angle: " + str(angleOfPoint))
+            return False
+
+        return True
+
 
     def findMinimumPoint(self, segment):
         sortedY = sorted(segment, key = itemgetter(1))
