@@ -18,17 +18,11 @@ def lineAngle(p1, p2, p3):
     b1 = distanceBetween(p1, p2)
     c1 = distanceBetween(p2, p3)
     a1 = distanceBetween(p1, p3)
-    print ("a: " + str(a1) + " b: " + str(b1) + " c: " + str(c1))
-    print ("p1: " + str(p1) + " p2: " + str(p2) + " p3: " + str(p3))
-    if p1 == (120, 198):
-        import pdb; pdb.set_trace()
 
+    pointsOnLine = colinear(p1, p2, p3)
 
-    areOnLine = colinear(p1, p2, p3)
-
-    if not areOnLine:
+    if pointsOnLine:
         return 180
-
     if a1 == 0 or b1 == 0:
         return 90
     if abs(a1 - (b1 + c1)) < 0.001:
@@ -37,14 +31,18 @@ def lineAngle(p1, p2, p3):
     return angle
 
 def colinear(p1, p2, p3):
-    x1 = p1[0]
-    x2 = p2[0]
-    x3 = p3[0]
+    p1x = p1[0]
+    p2x = p2[0]
+    p3x = p3[0]
 
-    y1 = p1[0]
-    y2 = p2[0]
-    y3 = p3[0]
-    return (y1 - y2) * (x1 - x3) == (y1 - y3) * (x1 - x2)
+    p1y = p1[1]
+    p2y = p2[1]
+    p3y = p3[1]
+
+    area = p1x * ( p2y - p3y ) + p2x * ( p3y - p1y ) + p3x * ( p1y - p2y )
+
+    print area
+    return area == 0
 
 def angleBetween(p1, p2):
     assert p1 != p2

@@ -16,9 +16,14 @@ class TraceFollower():
         self.segments = outlines
         self.width = width
         self.height = height
+        self.definedPoints = []
+        self.hasFoundPoints = False
 
     def getDottedSegments(self):
-        return self.findDefiningPoints()
+        if not self.hasFoundPoints:
+            self.points = self.findDefiningPoints()
+            self.hasFoundPoints = True 
+        return self.points
 
     def findDefiningPoints(self):
         newSegments = []
@@ -31,12 +36,24 @@ class TraceFollower():
 
         return newSegments
 
+    def makeSegmentTrace(self, segment):
+        if len(segment) < 4:
+            return segment
+
+        firstTrace = self.findSingleTrace(segment)
+        if not len(firstTrace):
+            return firstTrace
+        orderedSegment = self.appendRemainingTraces(firstTrace, segment)
+
+        return orderedSegment
+
     def findSingleTrace(self, segment):
         trace = []
         segmentBoard = SegmentBoard(self.width, self.height)
         segmentBoard.markTruePoints(segment)
 
         current = self.findMinimumPoint(segment)
+
         segment.remove(current)
         trace.append(current)
 
@@ -59,17 +76,6 @@ class TraceFollower():
             current = nextPoint
 
         return trace
-
-    def makeSegmentTrace(self, segment):
-        if len(segment) < 4:
-            return segment
-
-        firstTrace = self.findSingleTrace(segment)
-        if not len(firstTrace):
-            return firstTrace
-        orderedSegment = self.appendRemainingTraces(firstTrace, segment)
-
-        return orderedSegment
 
     def appendRemainingTraces(self, baseTrace, remaining):
         baseTraceBoard = SegmentBoard(self.width, self.height)

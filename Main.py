@@ -54,6 +54,10 @@ outlines = centerRemover.getSegmentOutlines()
 end = time.clock()
 print ("---- Center removal time : " + str(end - start) + " ----")
 
+intermediate = IntermediateImage(outlines, width, height)
+intermediate.colorLargestSegments()
+intermediate.showImage()
+
 traceFollower = TraceFollower(outlines, width, height)
 
 start = time.clock()
