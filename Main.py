@@ -6,13 +6,13 @@ from PIL import Image
 
 import cv2
 
-from SegmentImage import SegmentImage
-from SegmentHoleFilling import SegmentHoleFilling
-from SegmentCenterRemoval import SegmentCenterRemoval
-from TraceFollower import TraceFollower
-from TraceConnecter import TraceConnecter
-from IntermediateImage import IntermediateImage
-from OutputImage import OutputImage
+# from SegmentImage import SegmentImage
+# from SegmentHoleFilling import SegmentHoleFilling
+# from SegmentCenterRemoval import SegmentCenterRemoval
+# from TraceFollower import TraceFollower
+# from TraceConnecter import TraceConnecter
+# from IntermediateImage import IntermediateImage
+# from OutputImage import OutputImage
 
 from EdgeDetector import EdgeDetector
 
@@ -31,7 +31,7 @@ else:
 
 # Canny Method:
 edgeDetector = EdgeDetector(fileName)
-edges = edgeDetector.chooseCannyImage()
+edges = edgeDetector.chooseCannyImage(5)
 cv2.imwrite("out.jpg", edges)
 
 # Segment Method:
