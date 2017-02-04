@@ -43,29 +43,30 @@ class EdgeMatrix():
             y = point[1]
             self.markTrueAt(x, y)
 
-    def markTrueAt(self, x, y):
+    def getXYFromArgs(x, y = None):
+        if type(x) is not int:
+            y = x[1]
+            x = x[0]
+        return x, y
+
+    def markTrueAt(self, x, y = None):
+        x, y = getXYFromArgs(x, y)
         self.matrix[x][y] = True
 
-    def markTruePoint(self, point):
-        x = point[0]
-        y = point[1]
-        self.matrix[x][y] = True
-
-    def markFalseAt(self, x, y):
+    def markFalseAt(self, x, y = None):
+        x, y = getXYFromArgs(x, y)
         self.matrix[x][y] = False
 
-    def markFalsePoint(self, point):
-        x = point[0]
-        y = point[1]
-        self.matrix[x][y] = False
-
-    def isTrueAt(self, x, y):
+    def isTrueAt(self, x, y = None):
+        x, y = getXYFromArgs(x, y)
         return self.matrix[x][y]
 
-    def getTrueNeighboursCount(self, x, y):
+    def getTrueNeighboursCount(self, x, y = None):
+        x, y = getXYFromArgs(x, y)
         return self.getTrueNeighboursInRadiusCount(x, y, 1)
 
-    def getTrueNeighboursInRadiusCount(self, x, y, radius):
+    def getTrueNeighboursInRadiusCount(self, radius, x, y = None):
+        x, y = getXYFromArgs(x, y)
         neighbours = self.getNeighboursInRadius(x, y, radius)
         trueNeighbours = 0
         for neighbour in neighbours:
@@ -76,10 +77,12 @@ class EdgeMatrix():
 
         return trueNeighbours
 
-    def getNeighbours(self, x, y):
+    def getNeighbours(self, x, y = None):
+        x, y = getXYFromArgs(x, y)
         return self.getNeighboursInRadius(x, y, 1)
 
-    def getNeighboursInRadius(self, x, y, radius):
+    def getNeighboursInRadius(self, radius, x, y = None):
+        x, y = getXYFromArgs(x, y)
         neighbours = []
         for i in range(x - radius, x + radius + 1):
             for j in range(y - radius, y + radius + 1):
@@ -89,7 +92,8 @@ class EdgeMatrix():
 
         return neighbours
 
-    def matrixContains(self, x, y):
+    def matrixContains(self, x, y = None):
+        x, y = getXYFromArgs(x, y)
         inHeight = y >= 0 and y < len(self.matrix[0])
         inWidth  = x >= 0 and x < len(self.matrix)
         return inWidth and inHeight
