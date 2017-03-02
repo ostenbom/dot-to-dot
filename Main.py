@@ -15,6 +15,10 @@ import cv2
 # from OutputImage import OutputImage
 
 from EdgeDetector import EdgeDetector
+from EdgeMatrix import EdgeMatrix
+from EdgeFollower import EdgeFollower
+
+from IntermediateImage import IntermediateImage
 
 arguments = len(sys.argv)
 
@@ -29,10 +33,30 @@ else:
     fileName = "simple.jpg"
     similarity = 40
 
+
+def timeFunction(function, *args):
+    start = time.clock()
+    returnValue = function(*args)
+    end = time.clock()
+    print ('--- ' + str(function.__name__) + ' --- Time: ' + str(end - start) + ' ---')
+    return returnValue
+
+imageData = Image.open(fileName)
+width = imageData.width
+height = imageData.height
+
 # Canny Method:
 edgeDetector = EdgeDetector(fileName)
-edges = edgeDetector.chooseCannyImage(5)
-cv2.imwrite("out.jpg", edges)
+edgesNumberMatrix = timeFunction(edgeDetector.getCannyImage)
+
+edgeMatrix = EdgeMatrix(edgesNumberMatrix)
+
+edgeFollower = EdgeFollower(edgeMatrix, width, height)
+traces = timeFunction(edgeFollower.getTraces)
+
+intermediate = IntermediateImage(traces, width, height)
+intermediate.colorAllSegments()
+intermediate.showImage()
 
 # Segment Method:
 '''

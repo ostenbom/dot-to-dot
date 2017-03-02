@@ -45,31 +45,31 @@ class EdgeMatrix():
             y = point[1]
             self.markTrueAt(x, y)
 
-    def getXYFromArgs(x, y = None):
+    def getXYFromArgs(self, x, y = None):
         if type(x) is not int:
             y = x[1]
             x = x[0]
         return x, y
 
     def markTrueAt(self, x, y = None):
-        x, y = getXYFromArgs(x, y)
+        x, y = self.getXYFromArgs(x, y)
         self.matrix[x][y] = True
 
     def markFalseAt(self, x, y = None):
-        x, y = getXYFromArgs(x, y)
+        x, y = self.getXYFromArgs(x, y)
         self.matrix[x][y] = False
 
     def isTrueAt(self, x, y = None):
-        x, y = getXYFromArgs(x, y)
+        x, y = self.getXYFromArgs(x, y)
         return self.matrix[x][y]
 
     def getTrueNeighboursCount(self, x, y = None):
-        x, y = getXYFromArgs(x, y)
-        return self.getTrueNeighboursInRadiusCount(x, y, 1)
+        x, y = self.getXYFromArgs(x, y)
+        return self.getTrueNeighboursInRadiusCount(1, x, y)
 
     def getTrueNeighboursInRadiusCount(self, radius, x, y = None):
-        x, y = getXYFromArgs(x, y)
-        neighbours = self.getNeighboursInRadius(x, y, radius)
+        x, y = self.getXYFromArgs(x, y)
+        neighbours = self.getNeighboursInRadius(radius, x, y)
         trueNeighbours = 0
         for neighbour in neighbours:
             x = neighbour[0]
@@ -80,11 +80,11 @@ class EdgeMatrix():
         return trueNeighbours
 
     def getNeighbours(self, x, y = None):
-        x, y = getXYFromArgs(x, y)
-        return self.getNeighboursInRadius(x, y, 1)
+        x, y = self.getXYFromArgs(x, y)
+        return self.getNeighboursInRadius(1, x, y)
 
     def getNeighboursInRadius(self, radius, x, y = None):
-        x, y = getXYFromArgs(x, y)
+        x, y = self.getXYFromArgs(x, y)
         neighbours = []
         for i in range(x - radius, x + radius + 1):
             for j in range(y - radius, y + radius + 1):
@@ -94,8 +94,18 @@ class EdgeMatrix():
 
         return neighbours
 
+    def getTrueNeighbours(self, x, y = None):
+        x, y = self.getXYFromArgs(x, y)
+        neighbours = self.getNeighbours(x, y)
+        trueNeighbours = []
+        for neighbour in neighbours:
+            if self.matrix[neighbour[0]][neighbour[1]]:
+                trueNeighbours.append(neighbour)
+
+        return trueNeighbours
+
     def matrixContains(self, x, y = None):
-        x, y = getXYFromArgs(x, y)
+        x, y = self.getXYFromArgs(x, y)
         inHeight = y >= 0 and y < len(self.matrix[0])
         inWidth  = x >= 0 and x < len(self.matrix)
         return inWidth and inHeight

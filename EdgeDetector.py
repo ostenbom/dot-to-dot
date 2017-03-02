@@ -34,10 +34,9 @@ class EdgeDetector():
     def getCannyImage(self):
         edges = self.getAutoCannyEdgePoints(self.blurred)
 
-        print ('Edge Detection Complete')
         height, width, channels = self.image.shape
         image = self.createCannyImage(width, height, edges)
-        image.save('out.jpg')
+        image.show()
 
         return edges
 

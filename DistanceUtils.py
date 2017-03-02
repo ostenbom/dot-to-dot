@@ -41,7 +41,6 @@ def colinear(p1, p2, p3):
 
     area = p1x * ( p2y - p3y ) + p2x * ( p3y - p1y ) + p3x * ( p1y - p2y )
 
-    print area
     return area == 0
 
 def angleBetween(p1, p2):
