@@ -31,6 +31,16 @@ class EdgeDetector():
         upper = int(min(255, (1.0 + sigma) * median))
         return cv2.Canny(image, lower, upper)
 
+    def getCannyImage(self):
+        edges = self.getAutoCannyEdgePoints(self.blurred)
+
+        print ('Edge Detection Complete')
+        height, width, channels = self.image.shape
+        image = self.createCannyImage(width, height, edges)
+        image.save('out.jpg')
+
+        return edges
+
     def chooseCannyImage(self, choose=DEFAULT_IMAGES_TO_CHOOSE):
         thresholdStep = int(100.0 / (choose + 1))
 
@@ -84,26 +94,16 @@ class EdgeDetector():
             currentWidth += width
             #cannyPixels.append(pixels)
 
-        '''
-        # There can be rounding errors when making the selection image, so
-        # rendering the whole images now.
-        currentWidth = 0
-        print ("Cannypixels", len(cannyPixels))
-        for canny in cannyPixels:
-            print("currentWidth", currentWidth)
-            for pixel in canny:
-                x = pixel[0]
-                y = pixel[1]
-                relativeX = x + currentWidth
+        return image
 
-                # absoluteX = pixel[0]
-                # absolutY = pixel[1]
-                # relativeX = int((float(absoluteX) / width) * singleWidth)
-                # relativeY = int(((float(absolutY) / height) * totalHeight))
-                # relativeX += currentWidth
-                image.putpixel((relativeX, y), (255, 255, 255))
-            # use singleWidth here if reducing size
-            currentWidth += width
-        '''
-
+    def createCannyImage(self, width, height, canny):
+        image = Image.new("RGB", (width, height))
+        y = 0
+        for row in canny:
+            x = 0
+            for column in row:
+                if column == 255:
+                    image.putpixel((x, y), (255, 255, 255))
+                x += 1
+            y += 1
         return image

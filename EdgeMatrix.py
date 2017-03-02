@@ -5,22 +5,24 @@ class EdgeMatrix():
     def __init__(self, numberMatrix):
         self.width = len(numberMatrix[0])
         self.height = len(numberMatrix)
-        self.matrix = numbersMatrixToBoolMatrix(numberMatrix)
+        self.matrix = []
+        # No guarantees that points reflects the state of the matrix,
+        # just a copy of initial matrix representation to avoid 2 passes
+        self.points = []
+        self.initialiseBoolMatrix(numberMatrix)
 
-    def numbersMatrixToBoolMatrix(self, numberMatrix):
-        boolMatrix = []
-
+    def initialiseBoolMatrix(self, numberMatrix):
         # Want to access the bool matrix as x, y, not y, x
         for i in range(self.width):
-            boolMatrix.append([False] * self.height)
+            self.matrix.append([False] * self.height)
 
-        points = []
         y = 0
-        for row in matrix:
+        for row in numberMatrix:
             x = 0
             for column in row:
                 if column != 0:
-                    points[x][y] = True
+                    self.matrix[x][y] = True
+                    self.points.append((x, y))
                 x += 1
             y += 1
 
