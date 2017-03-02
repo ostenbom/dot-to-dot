@@ -1,6 +1,7 @@
 import sys
 import math
 import numpy as np
+import DistanceUtils
 
 from EdgeMatrix import EdgeMatrix
 
@@ -81,7 +82,11 @@ class EdgeFollower(self):
 
         behindDirection = self.getBehindDirection(point, trace)
 
-
+        currentBest = 360
+        for ahead, i in aheadDirections:
+            thisAccute = math.degrees(abs(currentBest - ahead))
+            thisObtuse = 180 - thisAccute
+            # Calculate closest angle here.
 
         return neighbours[0]
 
