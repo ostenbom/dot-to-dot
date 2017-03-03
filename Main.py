@@ -3,6 +3,7 @@ import time
 import copy
 import itertools
 from PIL import Image
+import numpy as np
 
 import cv2
 
@@ -12,12 +13,13 @@ import cv2
 # from TraceFollower import TraceFollower
 # from TraceConnecter import TraceConnecter
 # from IntermediateImage import IntermediateImage
-# from OutputImage import OutputImage
 
 from EdgeDetector import EdgeDetector
 from EdgeMatrix import EdgeMatrix
 from EdgeFollower import EdgeFollower
+from TraceConverter import TraceConverter
 
+from OutputImage import OutputImage
 from IntermediateImage import IntermediateImage
 
 arguments = len(sys.argv)
@@ -51,6 +53,18 @@ traces = timeFunction(edgeFollower.getTraces)
 intermediate = IntermediateImage(traces, width, height)
 intermediate.colorAllSegments()
 intermediate.showImage()
+
+traceConverter = TraceConverter(traces)
+lines = timeFunction(traceConverter.getLines)
+
+intermediate = IntermediateImage(lines, width, height)
+intermediate.colorAllSegments()
+intermediate.showImage()
+
+points = [item for sublist in lines for item in sublist]
+out = OutputImage(points, (width, height), True)
+out.showImage()
+out.saveImage()
 
 # Segment Method:
 '''
