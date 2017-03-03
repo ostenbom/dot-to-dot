@@ -23,15 +23,9 @@ from IntermediateImage import IntermediateImage
 arguments = len(sys.argv)
 
 if arguments > 1:
-    if arguments == 2:
-        fileName = "simple.jpg"
-    else:
-        fileName = sys.argv[2]
-
-    similarity = int(sys.argv[1])
+    fileName = sys.argv[1]
 else:
-    fileName = "simple.jpg"
-    similarity = 40
+    fileName = "testimages/simple.jpg"
 
 
 def timeFunction(function, *args):
