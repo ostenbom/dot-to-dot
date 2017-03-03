@@ -7,7 +7,7 @@ warnings.simplefilter('ignore', np.RankWarning)
 from DistanceUtils import lineAngle
 from EdgeMatrix import EdgeMatrix
 
-TRACE_SIZE_THRESHOLD = 4
+TRACE_SIZE_THRESHOLD = 20
 POINTS_FOR_DIRECTION = 5
 
 class EdgeFollower():
@@ -130,16 +130,11 @@ class EdgeFollower():
             for aheadPoint in ahead:
                 averageAheadAngle += lineAngle(straightPoint, point, aheadPoint)
             averageAheadAngle = float(averageAheadAngle) / len(ahead)
-            # print ('aheadAngle: ' + str(averageAheadAngle))
 
             thisAccute = math.degrees(abs(math.atan(float(behindDirection)) - math.atan(float(aheadDirections[i]))))
             thisObtuse = 180 - thisAccute
-            # print ('acute: ', str(thisAccute))
-            # print ('obtuse: ', str(thisObtuse))
-
 
             thisAngle = thisAccute if abs(averageAheadAngle - thisAccute) < abs(averageAheadAngle - thisObtuse) else thisObtuse
-            # print ('thisAngle: ' + str(thisAngle))
 
             if thisAngle < currentBest:
                 currentBest = thisAngle
@@ -160,7 +155,6 @@ class EdgeFollower():
         ys = [p[1] for p in ahead]
         m, c = np.polyfit(xs, ys, 1)
 
-        # print('ahead from: ' + str(ahead[0]) + ' coeff: ' + str(m))
         return m
 
     def getBehindDirection(self, point, trace):
