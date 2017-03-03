@@ -31,7 +31,6 @@ class EdgeFollower():
 
         while len(self.points):
             point = self.points.pop(0)
-            self.edgeMatrix.markFalseAt(point)
             trace = self.makeTrace(point)
             if len(trace) > TRACE_SIZE_THRESHOLD:
                 traces.append(trace)
@@ -39,12 +38,15 @@ class EdgeFollower():
         return traces
 
     def makeTrace(self, startingPoint, limit = sys.maxint, persistent = True):
+        self.edgeMatrix.markFalseAt(startingPoint)
         trace = [startingPoint]
         nextNeighbours = self.edgeMatrix.getTrueNeighbours(startingPoint)
+        originalNeighbours = nextNeighbours[:]
         if not len(nextNeighbours):
             return trace
 
         removed = []
+
 
         nextPoint = nextNeighbours[0]
         self.removeFromMatrix(nextPoint)
@@ -67,7 +69,13 @@ class EdgeFollower():
             trace.append(nextPoint)
             nextNeighbours = self.edgeMatrix.getTrueNeighbours(nextPoint)
 
-        if not persistent:
+        if persistent:
+            if len(originalNeighbours) == 2 and not self.twoNeighboursAdjacent(originalNeighbours):
+                otherDirectionTrace = self.makeTrace(originalNeighbours[1])
+                otherDirectionTrace.reverse()
+                trace = trace + otherDirectionTrace
+        else:
+            self.edgeMatrix.markTrueAt(startingPoint)
             for point in removed:
                 self.addToMatrix(point)
 
