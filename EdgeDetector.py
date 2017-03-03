@@ -36,7 +36,7 @@ class EdgeDetector():
 
         height, width, channels = self.image.shape
         image = self.createCannyImage(width, height, edges)
-        image.show()
+        # image.show()
 
         return edges
 

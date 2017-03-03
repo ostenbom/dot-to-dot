@@ -137,6 +137,11 @@ class EdgeFollower():
                 currentBest = thisAngle
                 bestIndex = i
 
+        for i, neighbour in enumerate(neighbours):
+            if i != bestIndex:
+                self.points.remove(neighbour)
+                self.points.insert(0, neighbour)
+
         return neighbours[bestIndex]
 
     def getAheadDirection(self, point):
