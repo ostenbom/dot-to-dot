@@ -73,7 +73,7 @@ class EdgeFollower():
             if len(originalNeighbours) == 2 and not self.twoNeighboursAdjacent(originalNeighbours):
                 otherDirectionTrace = self.makeTrace(originalNeighbours[1])
                 otherDirectionTrace.reverse()
-                trace = trace + otherDirectionTrace
+                trace = otherDirectionTrace + trace
         else:
             self.edgeMatrix.markTrueAt(startingPoint)
             for point in removed:

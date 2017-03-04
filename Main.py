@@ -18,8 +18,10 @@ from EdgeDetector import EdgeDetector
 from EdgeMatrix import EdgeMatrix
 from EdgeFollower import EdgeFollower
 from TraceConverter import TraceConverter
+from LineConnecter import LineConnecter
 
 from OutputImage import OutputImage
+from OutputNonConnectedLines import OutputNonConnectedLines
 from IntermediateImage import IntermediateImage
 
 arguments = len(sys.argv)
@@ -61,8 +63,12 @@ intermediate = IntermediateImage(lines, width, height)
 intermediate.colorAllSegments()
 intermediate.showImage()
 
-points = [item for sublist in lines for item in sublist]
-out = OutputImage(points, (width, height), True)
+print ('Lines to connect', len(lines))
+
+lineConnecter = LineConnecter(lines)
+sortedLines = timeFunction(lineConnecter.getConnectedLines)
+
+out = OutputNonConnectedLines(lines, (width, height))
 out.showImage()
 out.saveImage()
 
