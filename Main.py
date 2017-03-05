@@ -48,6 +48,6 @@ sortedLines = timeFunction(lineConnecter.getConnectedLines, 5)
 
 pointsInOrder = [point for sublist in sortedLines for point in sublist]
 print ('Dots in image: ' + str(len(pointsInOrder)))
-out = OutputImage(pointsInOrder, (width, height))
+out = OutputImage(pointsInOrder, (width, height), True, True)
 out.showImage()
 out.saveImage()

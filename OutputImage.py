@@ -1,7 +1,7 @@
 from PIL import Image, ImageDraw, ImageFont
 
 BASE_IMAGE_WIDTH = 5000
-BASE_LIMIT = 20000
+BASE_LIMIT = 15000
 
 INITIAL_FONT_SIZE = 12
 MIN_FONT_SIZE = 9
@@ -67,7 +67,7 @@ class OutputImage():
         i = 1
         color = self.pickNextColor()
         prev = self.points.pop(0)
-        self.drawPointWithNumber(prev, i, color)
+        self.drawPointWithNumber(prev, i, color, ensureSpace)
         i += 1
 
         while len(self.points):
@@ -95,13 +95,13 @@ class OutputImage():
         for point in self.points:
             if i % NUMBERS_PER_COLOUR == 0:
                 color = self.pickNextColor()
-            if not self.drawPointWithNumber(point, i, color) and ensureSpace:
+            if not self.drawPointWithNumber(point, i, color, ensureSpace) and ensureSpace:
                 return False
             i += 1
 
         return True
 
-    def drawPointWithNumber(self, point, number, color):
+    def drawPointWithNumber(self, point, number, color, ensureSpace):
         if number == 1:
             pointSize = 4
         else:
@@ -111,7 +111,7 @@ class OutputImage():
         ellipseY = point[1] * self.yScaling + OUTLINE_SPACE
         textX, textY, success = self.chooseTextPoint(ellipseX, ellipseY, number)
 
-        if not success:
+        if not success and ensureSpace:
             return False
 
         self.draw.text((textX, textY), str(number), font=self.font, fill=color)
