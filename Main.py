@@ -1,18 +1,6 @@
 import sys
 import time
-import copy
-import itertools
 from PIL import Image
-import numpy as np
-
-import cv2
-
-# from SegmentImage import SegmentImage
-# from SegmentHoleFilling import SegmentHoleFilling
-# from SegmentCenterRemoval import SegmentCenterRemoval
-# from TraceFollower import TraceFollower
-# from TraceConnecter import TraceConnecter
-# from IntermediateImage import IntermediateImage
 
 from EdgeDetector import EdgeDetector
 from EdgeMatrix import EdgeMatrix
