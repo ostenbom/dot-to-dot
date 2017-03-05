@@ -27,14 +27,15 @@ class LineConnecter():
         distanceMatrix = [[distanceBetween(self.coords[i], self.coords[j]) for i in range(n)] for j in range(n)]
         return distanceMatrix
 
-    def getConnectedLines(self):
-        initial = self.greedySolution()
-        print ('Greedy Distance: ' + str(self.indexDistance(initial)))
-        # optimizeResult = scipy.optimize.basinhopping(self.indexDistance, initial, niter=100, disp=True)
-        optimalIndexSol = self.anneal(initial)
-        # print ('Optimized Distance: ' + str(optimizeResult.fun))
-        # print ('Optimization Result: ' + optimizeResult.message[0])
-        solution = self.solutionIndexesToLines(optimalIndexSol)
+    def getConnectedLines(self, tries):
+        initialSolutions = [self.greedySolution() for i in range(tries)]
+        optimizedSolutions = []
+        for sol in initialSolutions:
+            potentialSolution, potentialFitness = self.anneal(sol)
+            optimizedSolutions.append((potentialSolution, potentialFitness))
+        bestSolution = min(optimizedSolutions, key=lambda x: x[1])
+        print ('--- --- Best Solution: ' + str(bestSolution[1]) + ' --- ---')
+        solution = self.solutionIndexesToLines(bestSolution[0])
         self.solution = solution
         return solution
 
@@ -57,9 +58,9 @@ class LineConnecter():
 
         return greedySol
 
-    def anneal(self, initial, iterations = 20000):
-        T = math.sqrt(len(self.coords) * 2)
-        print ('Initial Temp: ' + str(T))
+    def anneal(self, initial, iterations = 10000):
+        T = math.sqrt(len(self.coords))
+        print ('--- Annealing ' + str(iterations) + ' Initial Temp: ' + str(T) + ' ---')
         alpha = 0.995
         stoppingTemp = 0.000001
 
@@ -80,9 +81,14 @@ class LineConnecter():
             T *= alpha
             iteration += 1
 
+        if T > stoppingTemp:
+            print ('Ended for Temperature, Iterations: ' + str(iteration))
+        else:
+            print ('Ended for Iterations, Temperature: ' + str(T))
+
         print ('Best fitness: ' + str(self.bestSolFitness))
         print ('Improvement: ' + str(initialFitness - self.bestSolFitness))
-        return self.bestSol
+        return (self.bestSol, self.bestSolFitness)
 
     def accept(self, candidate, T):
         candidateFitness = self.indexDistance(candidate)
