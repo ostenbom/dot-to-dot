@@ -57,46 +57,45 @@ class LineConnecter():
 
         return greedySol
 
-    def anneal(self, initial, iterations = 10000):
-        T = math.sqrt(len(self.coords))
+    def anneal(self, initial, iterations = 20000):
+        T = math.sqrt(len(self.coords) * 2)
         print ('Initial Temp: ' + str(T))
         alpha = 0.995
         stoppingTemp = 0.000001
 
         initialFitness = self.indexDistance(initial)
 
-        currentSol = initial[:]
-        currentSolFitness = self.indexDistance(currentSol)
-
-        bestSol = currentSol
-        bestSolFitness = currentSolFitness
+        self.currentSol = initial[:]
+        self.currentSolFitness = self.indexDistance(self.currentSol)
+        self.bestSol = self.currentSol[:]
+        self.bestSolFitness = self.currentSolFitness
 
         iteration = 1
         while T > stoppingTemp and iteration < iterations:
-            candidate = currentSol[:]
+            candidate = self.currentSol[:]
             upper = np.random.randint(1, len(self.coords))
             lower = np.random.randint(0, len(self.coords) - upper)
             candidate[lower:(lower+upper)] = reversed(candidate[lower:(lower+upper)])
-            self.accept(candidate, currentSol, currentSolFitness, bestSol, bestSolFitness, T)
+            self.accept(candidate, T)
             T *= alpha
             iteration += 1
 
-        print ('Best fitness: ' + str(bestSolFitness))
-        print ('Improvement: ' + str(initialFitness - bestSolFitness))
-        return bestSol
+        print ('Best fitness: ' + str(self.bestSolFitness))
+        print ('Improvement: ' + str(initialFitness - self.bestSolFitness))
+        return self.bestSol
 
-    def accept(self, candidate, currentSol, currentSolFitness, bestSol, bestSolFitness, T):
+    def accept(self, candidate, T):
         candidateFitness = self.indexDistance(candidate)
-        if candidateFitness < currentSolFitness:
-            currentSol = candidate
-            currentSolFitness = candidateFitness
-            if candidateFitness < bestSolFitness:
-                bestSol = candidate
-                bestSolFitness = candidateFitness
+        if candidateFitness < self.currentSolFitness:
+            self.currentSol = candidate
+            self.currentSolFitness = candidateFitness
+            if candidateFitness < self.bestSolFitness:
+                self.bestSol = candidate
+                self.bestSolFitness = candidateFitness
         else:
-            if np.random.random_sample() < self.pAccept(candidateFitness, currentSolFitness, T):
-                currentSol = candidate
-                currentSolFitness = candidateFitness
+            if np.random.random_sample() < self.pAccept(candidateFitness, self.currentSolFitness, T):
+                self.currentSol = candidate
+                self.currentSolFitness = candidateFitness
 
     def pAccept(self, candidateFitness, currentFitness, T):
         return math.exp(-abs(candidateFitness - currentFitness) / T)
