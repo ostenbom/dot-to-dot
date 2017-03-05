@@ -1,37 +1,58 @@
 from PIL import Image, ImageDraw, ImageFont
 
 BASE_IMAGE_WIDTH = 5000
+BASE_LIMIT = 15000
+
+INITIAL_FONT_SIZE = 12
+MIN_FONT_SIZE = 9
+
 NUMBERS_PER_COLOUR = 100
+WHITE = (255, 255, 255)
 COLOURS = [(0, 0, 200), (50, 50, 50), (200, 0, 200), (200, 0, 0), (200, 100, 0), (200, 200, 0), (0, 200, 0), (0, 200, 200)]
+OUTLINE_SPACE = 50
 
 class OutputImage():
 
-    def __init__(self, points, originalDimensions, drawLines = False):
-        self.points = points
-        originalWidth = originalDimensions[0]
-        originalHeight = originalDimensions[1]
+    def __init__(self, points, originalDimensions, drawLines = False, ensureSpace = True):
+        self.points = points[:]
+        self.originalWidth = originalDimensions[0]
+        self.originalHeight = originalDimensions[1]
 
-        imageRatio = float(originalHeight) / float(originalWidth)
+        self.imageRatio = float(self.originalHeight) / float(self.originalWidth)
 
-        imageHeight = BASE_IMAGE_WIDTH * imageRatio
+        self.base = BASE_IMAGE_WIDTH
+        self.setInitialValuesFromBase(self.base, INITIAL_FONT_SIZE)
 
-        self.xScaling = float(BASE_IMAGE_WIDTH) / float(originalWidth)
-        self.yScaling = float(imageHeight) / float(originalHeight)
+        drawFunc = self.drawLines if drawLines else self.drawPoints
 
-        print ("Dimensions: (" + str(BASE_IMAGE_WIDTH) + ", " + str(imageHeight) + ")")
+        if ensureSpace:
+            while self.base < BASE_LIMIT and not drawFunc(True):
+                self.setInitialValuesFromBase(self.base + 500, self.fontSize - 0.5)
 
-        self.image = Image.new("RGB", (BASE_IMAGE_WIDTH, int(imageHeight)), color=(255, 255, 255))
+        drawFunc(False)
+
+    def setInitialValuesFromBase(self, base, fontSize):
+        self.base = base
+        self.fontSize = fontSize if fontSize > MIN_FONT_SIZE else MIN_FONT_SIZE
+        imageWidth = base
+        imageHeight = imageWidth * self.imageRatio
+
+        fullWidth = imageWidth + (OUTLINE_SPACE * 2)
+        fullHeight = imageHeight + (OUTLINE_SPACE * 2)
+
+        self.xScaling = float(imageWidth) / float(self.originalWidth)
+        self.yScaling = float(imageHeight) / float(self.originalHeight)
+
+        print ("Dimensions: (" + str(imageWidth) + ", " + str(imageHeight) + ")")
+
+        self.image = Image.new("RGB", (fullWidth, int(fullHeight)), color=WHITE)
 
         self.draw = ImageDraw.Draw(self.image)
 
-        self.font = ImageFont.truetype("open-sans.ttf", 12)
+        self.font = ImageFont.truetype("open-sans.ttf", int(self.fontSize))
 
         self.colorIndex = 0
 
-        if drawLines:
-            self.drawLines()
-        else:
-            self.drawPoints()
 
     def saveImage(self):
         self.image.save("out.jpg")
@@ -39,54 +60,96 @@ class OutputImage():
     def showImage(self):
         self.image.show()
 
-    def drawLines(self):
+    def drawLines(self, ensureSpace):
+        if not self.drawPoints(ensureSpace):
+            return False
+
         i = 1
         color = self.pickNextColor()
         prev = self.points.pop(0)
-        self.drawPointWithNumber(prev, i, color)
+        self.drawPointWithNumber(prev, i, color, ensureSpace)
         i += 1
 
         while len(self.points):
-            if i % NUMBERS_PER_COLOUR == 0:
-                color = self.pickNextColor()
             current = self.points.pop(0)
             self.drawLineBetweenPoints(prev, current)
-            self.drawPointWithNumber(current, i, color)
             prev = current
             i += 1
+
+        return True
 
     def drawLineBetweenPoints(self, p1, p2):
         color = (0, 0, 0)
 
-        x1 = p1[0] * self.xScaling
-        x2 = p2[0] * self.xScaling
+        x1 = p1[0] * self.xScaling + OUTLINE_SPACE
+        x2 = p2[0] * self.xScaling + OUTLINE_SPACE
 
-        y1 = p1[1] * self.yScaling
-        y2 = p2[1] * self.yScaling
+        y1 = p1[1] * self.yScaling + OUTLINE_SPACE
+        y2 = p2[1] * self.yScaling + OUTLINE_SPACE
 
         self.draw.line([(x1, y1), (x2, y2)], fill=color, width=2)
 
-    def drawPoints(self):
+    def drawPoints(self, ensureSpace):
         i = 1
-        color = self.pickNextColor
+        color = self.pickNextColor()
         for point in self.points:
             if i % NUMBERS_PER_COLOUR == 0:
-                color = self.pickNextColor
-            self.drawPointWithNumber(point, i, color)
+                color = self.pickNextColor()
+            if not self.drawPointWithNumber(point, i, color, ensureSpace) and ensureSpace:
+                return False
             i += 1
 
-    def drawPointWithNumber(self, point, number, color):
+        return True
+
+    def drawPointWithNumber(self, point, number, color, ensureSpace):
         if number == 1:
             pointSize = 4
         else:
             pointSize = 2
 
-        x = point[0] * self.xScaling
-        y = point[1] * self.yScaling
-        self.draw.ellipse([x - pointSize, y - pointSize, x + pointSize, y + pointSize], fill=color)
-        x += 2
-        y += 2
-        self.draw.text((x, y), str(number), fill=color, font=self.font)
+        ellipseX = point[0] * self.xScaling + OUTLINE_SPACE
+        ellipseY = point[1] * self.yScaling + OUTLINE_SPACE
+        textX, textY, success = self.chooseTextPoint(ellipseX, ellipseY, number)
+
+        if not success and ensureSpace:
+            return False
+
+        self.draw.text((textX, textY), str(number), font=self.font, fill=color)
+        self.draw.ellipse([ellipseX - pointSize, ellipseY - pointSize, ellipseX + pointSize, ellipseY + pointSize], fill=color)
+
+        return True
+
+    def chooseTextPoint(self, pointX, pointY, number):
+        textWidth, textHeight = self.draw.textsize(str(number), self.font)
+        possibleTextPositions = [
+            (pointX + 2, pointY + 2),
+            (pointX + 2, pointY - 2 - textHeight),
+            (pointX - 2 - textWidth, pointY + 2),
+            (pointX - 2 - textWidth, pointY - 2 - textHeight)]
+
+
+        spaceExists = False
+
+        for textPoint in possibleTextPositions:
+            textX = textPoint[0]
+            textY = textPoint[1]
+            if not self.overlaps(textX, textY, textWidth, textHeight):
+                spaceExists = True
+                break
+
+
+        if not spaceExists:
+            print ('--- Overlap! No Space for Point: (' + str(pointX) + ', ' + str(pointY) + ') ---')
+            return [textX, textY, False]
+
+        return [textX, textY, True]
+
+    def overlaps(self, textX, textY, width, height):
+        for x in range(int(textX), int(textX + width + 1)):
+            for y in range(int(textY), int(textY + height + 1)):
+                if self.image.getpixel((x, y)) != WHITE:
+                    return True
+        return False
 
     def pickNextColor(self):
         color = COLOURS[self.colorIndex]

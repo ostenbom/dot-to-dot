@@ -1,79 +1,53 @@
 import sys
 import time
-import copy
-import itertools
 from PIL import Image
 
-from SegmentImage import SegmentImage
-from SegmentHoleFilling import SegmentHoleFilling
-from SegmentCenterRemoval import SegmentCenterRemoval
-from TraceFollower import TraceFollower
-from TraceConnecter import TraceConnecter
-from IntermediateImage import IntermediateImage
+from EdgeDetector import EdgeDetector
+from EdgeMatrix import EdgeMatrix
+from EdgeFollower import EdgeFollower
+from TraceConverter import TraceConverter
+from LineConnecter import LineConnecter
+
 from OutputImage import OutputImage
+from OutputNonConnectedLines import OutputNonConnectedLines
+from IntermediateImage import IntermediateImage
 
 arguments = len(sys.argv)
 
 if arguments > 1:
-    if arguments == 2:
-        fileName = "simple.jpg"
-    else:
-        fileName = sys.argv[2]
-
-    similarity = int(sys.argv[1])
+    fileName = sys.argv[1]
 else:
-    fileName = "simple.jpg"
-    similarity = 40
+    fileName = "testimages/simple.jpg"
+
+def timeFunction(function, *args):
+    start = time.clock()
+    returnValue = function(*args)
+    end = time.clock()
+    print ('--- ' + str(function.__name__) + ' --- Time: ' + str(end - start) + ' ---')
+    return returnValue
 
 imageData = Image.open(fileName)
 width = imageData.width
 height = imageData.height
 
-segmentImage = SegmentImage(fileName, similarity)
+edgeDetector = EdgeDetector(fileName)
+edgesNumberMatrix = timeFunction(edgeDetector.getCannyImage)
 
-start = time.clock()
-segments = segmentImage.getSegments()
-end = time.clock()
-print ("---- Segmentation time : " + str(end - start) + " ----")
+edgeMatrix = EdgeMatrix(edgesNumberMatrix)
 
-holeFilling = SegmentHoleFilling(segments, width, height)
-start = time.clock()
-filledSegments = holeFilling.getFilledSegments()
-end = time.clock()
-print ("---- Hole fill time : " + str(end - start) + " ----")
+edgeFollower = EdgeFollower(edgeMatrix, width, height)
+traces = timeFunction(edgeFollower.getTraces)
 
-intermediate = IntermediateImage(filledSegments, width, height)
-intermediate.colorLargestSegments()
-intermediate.showImage()
-intermediate.saveImage("segments.jpg")
+traceConverter = TraceConverter(traces)
+lines = timeFunction(traceConverter.getLines)
 
-centerRemover = SegmentCenterRemoval(filledSegments, width, height)
+print ('Lines to connect: ' + str(len(lines)))
 
-start = time.clock()
-outlines = centerRemover.getSegmentOutlines()
-end = time.clock()
-print ("---- Center removal time : " + str(end - start) + " ----")
+lineConnecter = LineConnecter(lines)
+sortedLines = timeFunction(lineConnecter.getConnectedLines, 5)
 
-intermediate = IntermediateImage(outlines, width, height)
-intermediate.colorLargestSegments()
-intermediate.showImage()
-
-traceFollower = TraceFollower(outlines, width, height)
-
-start = time.clock()
-dottedSegments = traceFollower.getDottedSegments()
-end = time.clock()
-print ("---- Defining points time : " + str(end - start) + " ----")
-
-connecter = TraceConnecter(dottedSegments, width, height)
-points = connecter.getConnectedTraces()
-
-print ("---- Points in image: " + str(len(points)) + " ----")
-out = OutputImage(points, (width, height), True)
+pointsInOrder = [point for sublist in sortedLines for point in sublist]
+print ('Dots in image: ' + str(len(pointsInOrder)))
+out = OutputImage(pointsInOrder, (width, height), True, True)
 out.showImage()
 out.saveImage()
-
-
-#cornerImage = copy.copy(image)
-#cornerImage.plotAllSegmentCorners(segmentCorners)
-#cornerImage.imageData.save("out_corners.jpg")

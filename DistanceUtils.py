@@ -27,7 +27,16 @@ def lineAngle(p1, p2, p3):
         return 90
     if abs(a1 - (b1 + c1)) < 0.001:
         return 180
-    angle = math.degrees(math.acos(float((a1 * a1) - (b1 * b1) - (c1 * c1)) / float(-2 * b1 * c1)))
+
+    f1 = float((a1 * a1) - (b1 * b1) - (c1 * c1)) / float(-2 * b1 * c1)
+
+    # Round down if going to be math domain error and very close
+    if f1 > 0 and f1 - 1 > 0 and f1 - 1 < 0.01:
+        f1 = 1
+    elif f1 < 0 and f1 + 1 < 0 and f1 + 1 > -0.01:
+        f1 = -1
+
+    angle = math.degrees(math.acos(f1))
     return angle
 
 def colinear(p1, p2, p3):
@@ -41,7 +50,6 @@ def colinear(p1, p2, p3):
 
     area = p1x * ( p2y - p3y ) + p2x * ( p3y - p1y ) + p3x * ( p1y - p2y )
 
-    print area
     return area == 0
 
 def angleBetween(p1, p2):
