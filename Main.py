@@ -72,6 +72,10 @@ out = OutputNonConnectedLines(lines, (width, height))
 out.showImage()
 out.saveImage()
 
+pointsInOrder = [point for sublist in sortedLines for point in sublist]
+out = OutputImage(pointsInOrder, (width, height), True)
+out.showImage()
+
 # Segment Method:
 '''
 imageData = Image.open(fileName)

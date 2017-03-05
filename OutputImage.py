@@ -7,7 +7,7 @@ COLOURS = [(0, 0, 200), (50, 50, 50), (200, 0, 200), (200, 0, 0), (200, 100, 0),
 class OutputImage():
 
     def __init__(self, points, originalDimensions, drawLines = False):
-        self.points = points
+        self.points = points[:]
         originalWidth = originalDimensions[0]
         originalHeight = originalDimensions[1]
 

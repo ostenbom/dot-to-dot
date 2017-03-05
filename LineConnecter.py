@@ -1,5 +1,8 @@
 import math
 import sys
+import numpy as np
+import scipy
+from scipy import optimize
 
 from DistanceUtils import distanceBetween
 
@@ -7,6 +10,128 @@ class LineConnecter():
 
     def __init__(self, lines):
         self.lines = lines
+        self.indexes = range(len(lines) * 2)
+        self.coords = []
+        for line in lines:
+            start = line[0]
+            end = line[-1]
+            self.coords.append(start)
+            self.coords.append(end)
+
+        self.distanceMatrix = self.generateDistanceMatrix()
+
+        self.solution = []
+
+    def generateDistanceMatrix(self):
+        n = len(self.coords)
+        distanceMatrix = [[distanceBetween(self.coords[i], self.coords[j]) for i in range(n)] for j in range(n)]
+        return distanceMatrix
 
     def getConnectedLines(self):
-        return self.lines
+        initial = self.greedySolution()
+        print ('Greedy Distance: ' + str(self.indexDistance(initial)))
+        # optimizeResult = scipy.optimize.basinhopping(self.indexDistance, initial, niter=100, disp=True)
+        optimalIndexSol = self.anneal(initial)
+        # print ('Optimized Distance: ' + str(optimizeResult.fun))
+        # print ('Optimization Result: ' + optimizeResult.message[0])
+        solution = self.solutionIndexesToLines(optimalIndexSol)
+        self.solution = solution
+        return solution
+
+    def greedySolution(self):
+        current = np.random.randint(0, len(self.lines))
+        currentEnd = self.otherEndIndex(current)
+        greedySol = [current]
+
+        freeList = self.indexes[:]
+        freeList.remove(current)
+        freeList.remove(currentEnd)
+
+        while len(freeList):
+            closestDistance = min([(self.distanceMatrix[currentEnd][i], i) for i in freeList], key=lambda x: x[0])
+            current = closestDistance[1]
+            currentEnd = self.otherEndIndex(current)
+            freeList.remove(current)
+            freeList.remove(currentEnd)
+            greedySol.append(current)
+
+        return greedySol
+
+    def anneal(self, initial, iterations = 10000):
+        T = math.sqrt(len(self.coords))
+        print ('Initial Temp: ' + str(T))
+        alpha = 0.995
+        stoppingTemp = 0.000001
+
+        initialFitness = self.indexDistance(initial)
+
+        currentSol = initial[:]
+        currentSolFitness = self.indexDistance(currentSol)
+
+        bestSol = currentSol
+        bestSolFitness = currentSolFitness
+
+        iteration = 1
+        while T > stoppingTemp and iteration < iterations:
+            candidate = currentSol[:]
+            upper = np.random.randint(1, len(self.coords))
+            lower = np.random.randint(0, len(self.coords) - upper)
+            candidate[lower:(lower+upper)] = reversed(candidate[lower:(lower+upper)])
+            self.accept(candidate, currentSol, currentSolFitness, bestSol, bestSolFitness, T)
+            T *= alpha
+            iteration += 1
+
+        print ('Best fitness: ' + str(bestSolFitness))
+        print ('Improvement: ' + str(initialFitness - bestSolFitness))
+        return bestSol
+
+    def accept(self, candidate, currentSol, currentSolFitness, bestSol, bestSolFitness, T):
+        candidateFitness = self.indexDistance(candidate)
+        if candidateFitness < currentSolFitness:
+            currentSol = candidate
+            currentSolFitness = candidateFitness
+            if candidateFitness < bestSolFitness:
+                bestSol = candidate
+                bestSolFitness = candidateFitness
+        else:
+            if np.random.random_sample() < self.pAccept(candidateFitness, currentSolFitness, T):
+                currentSol = candidate
+                currentSolFitness = candidateFitness
+
+    def pAccept(self, candidateFitness, currentFitness, T):
+        return math.exp(-abs(candidateFitness - currentFitness) / T)
+
+    def indexDistance(self, sol):
+        total = np.sum([self.distanceMatrix[int(sol[self.otherEndIndex(i - 1)])][int(sol[i])] for i in range(1, len(sol))])
+        return total
+
+    def otherEndIndex(self, index):
+        if index % 2 == 0:
+            return index + 1
+        else:
+            return index - 1
+
+    def solutionIndexesToLines(self, indexes):
+        lines = []
+        for i in indexes:
+            line = self.lines[i / 2]
+            if i % 2 == 1:
+                # Will this reverse the original line?
+                line.reverse()
+            lines.append(line)
+        return lines
+
+    def calculateSolutionDistance(self, sol):
+        solution = sol[:]
+        totalDistance = 0
+        currLine = solution.pop(0)
+        nextLine = solution.pop(0)
+
+        while len(solution):
+            curEnd = currLine[-1]
+            nextStart = nextLine[0]
+            totalDistance += distanceBetween(curEnd, nextStart)
+            currLine = nextLine
+            nextLine = solution.pop(0)
+
+        return totalDistance
