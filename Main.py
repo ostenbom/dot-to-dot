@@ -38,6 +38,10 @@ edgeMatrix = EdgeMatrix(edgesNumberMatrix)
 edgeFollower = EdgeFollower(edgeMatrix, width, height)
 traces = timeFunction(edgeFollower.getTraces)
 
+outEdges = IntermediateImage(traces, width, height)
+outEdges.colorAllSegments()
+outEdges.saveImage("edges.jpg")
+
 traceConverter = TraceConverter(traces)
 lines = timeFunction(traceConverter.getLines)
 
@@ -46,8 +50,10 @@ print ('Lines to connect: ' + str(len(lines)))
 lineConnecter = LineConnecter(lines)
 sortedLines = timeFunction(lineConnecter.getConnectedLines, 5)
 
+outLines = OutputNonConnectedLines(lines, width, height)
+outLines.saveImage()
+
 pointsInOrder = [point for sublist in sortedLines for point in sublist]
 print ('Dots in image: ' + str(len(pointsInOrder)))
-out = OutputImage(pointsInOrder, (width, height), True, True)
-out.showImage()
+out = OutputImage(pointsInOrder, width, height, True, True)
 out.saveImage()

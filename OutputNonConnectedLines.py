@@ -7,10 +7,10 @@ COLOURS = [(0, 0, 200), (50, 50, 50), (200, 0, 200), (200, 0, 0), (200, 100, 0),
 
 class OutputNonConnectedLines():
 
-    def __init__(self, lines, originalDimensions):
+    def __init__(self, lines, originalWidth, originalHeight):
         self.lines = copy.deepcopy(lines)
-        originalWidth = originalDimensions[0]
-        originalHeight = originalDimensions[1]
+        self.originalWidth = originalWidth
+        self.originalHeight = originalHeight
 
         imageRatio = float(originalHeight) / float(originalWidth)
 
@@ -32,7 +32,7 @@ class OutputNonConnectedLines():
         self.drawLines()
 
     def saveImage(self):
-        self.image.save("out.jpg")
+        self.image.save("lines.jpg")
 
     def showImage(self):
         self.image.show()

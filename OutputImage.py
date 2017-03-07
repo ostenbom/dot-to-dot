@@ -13,10 +13,10 @@ OUTLINE_SPACE = 50
 
 class OutputImage():
 
-    def __init__(self, points, originalDimensions, drawLines = False, ensureSpace = True):
+    def __init__(self, points, originalWidth, originalHeight, drawLines = False, ensureSpace = True):
         self.points = points[:]
-        self.originalWidth = originalDimensions[0]
-        self.originalHeight = originalDimensions[1]
+        self.originalWidth = originalWidth
+        self.originalHeight = originalHeight
 
         self.imageRatio = float(self.originalHeight) / float(self.originalWidth)
 
@@ -29,6 +29,7 @@ class OutputImage():
             while self.base < BASE_LIMIT and not drawFunc(True):
                 self.setInitialValuesFromBase(self.base + 500, self.fontSize - 0.5)
 
+        self.setInitialValuesFromBase(self.base, self.fontSize)
         drawFunc(False)
 
     def setInitialValuesFromBase(self, base, fontSize):
@@ -55,7 +56,7 @@ class OutputImage():
 
 
     def saveImage(self):
-        self.image.save("out.jpg")
+        self.image.save("dots.jpg")
 
     def showImage(self):
         self.image.show()
@@ -64,14 +65,16 @@ class OutputImage():
         if not self.drawPoints(ensureSpace):
             return False
 
+        points = self.points[:]
+
         i = 1
         color = self.pickNextColor()
-        prev = self.points.pop(0)
+        prev = points.pop(0)
         self.drawPointWithNumber(prev, i, color, ensureSpace)
         i += 1
 
-        while len(self.points):
-            current = self.points.pop(0)
+        while len(points):
+            current = points.pop(0)
             self.drawLineBetweenPoints(prev, current)
             prev = current
             i += 1
