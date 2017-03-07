@@ -41,6 +41,9 @@ class OutputImage():
         fullWidth = imageWidth + (OUTLINE_SPACE * 2)
         fullHeight = imageHeight + (OUTLINE_SPACE * 2)
 
+        self.fullWidth = fullWidth
+        self.fullHeight = fullHeight
+
         self.xScaling = float(imageWidth) / float(self.originalWidth)
         self.yScaling = float(imageHeight) / float(self.originalHeight)
 
@@ -54,6 +57,8 @@ class OutputImage():
 
         self.colorIndex = 0
 
+    def getImageObject(self):
+        return self.image
 
     def saveImage(self):
         self.image.save("dots.jpg")

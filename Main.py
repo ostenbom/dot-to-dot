@@ -11,6 +11,7 @@ from LineConnecter import LineConnecter
 from OutputImage import OutputImage
 from OutputNonConnectedLines import OutputNonConnectedLines
 from IntermediateImage import IntermediateImage
+from SolutionSelectionImage import SolutionSelectionImage
 
 arguments = len(sys.argv)
 
@@ -48,7 +49,15 @@ lines = timeFunction(traceConverter.getLines)
 print ('Lines to connect: ' + str(len(lines)))
 
 lineConnecter = LineConnecter(lines)
-sortedLines = timeFunction(lineConnecter.getConnectedLines, 5)
+# sortedLines = timeFunction(lineConnecter.getConnectedLines, 5)
+potentialSolutions = timeFunction(lineConnecter.tryConnecting, 6)
+
+solutonSelection = SolutionSelectionImage(potentialSolutions, width, height)
+solutonSelection.saveImage()
+
+print ("Pick and image between 1 - 6")
+imagePick = int(input("Image Number: ")) - 1
+sortedLines = potentialSolutions[imagePick]
 
 outLines = OutputNonConnectedLines(lines, width, height)
 outLines.saveImage()

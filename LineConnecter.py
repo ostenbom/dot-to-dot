@@ -27,6 +27,16 @@ class LineConnecter():
         distanceMatrix = [[distanceBetween(self.coords[i], self.coords[j]) for i in range(n)] for j in range(n)]
         return distanceMatrix
 
+    def tryConnecting(self, times):
+        initialSolutions = [self.greedySolution() for i in range(times)]
+        differentSolutions = []
+
+        for sol in initialSolutions:
+            potentialSolution, potentialFitness = self.anneal(sol)
+            differentSolutions.append(self.solutionIndexesToLines(potentialSolution))
+
+        return differentSolutions
+
     def getConnectedLines(self, tries):
         initialSolutions = [self.greedySolution() for i in range(tries)]
         optimizedSolutions = []
