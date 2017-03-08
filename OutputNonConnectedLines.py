@@ -16,6 +16,9 @@ class OutputNonConnectedLines():
 
         imageHeight = BASE_IMAGE_WIDTH * imageRatio
 
+        self.width = BASE_IMAGE_WIDTH
+        self.height = imageHeight
+
         self.xScaling = float(BASE_IMAGE_WIDTH) / float(originalWidth)
         self.yScaling = float(imageHeight) / float(originalHeight)
 
@@ -30,6 +33,9 @@ class OutputNonConnectedLines():
         self.colorIndex = 0
 
         self.drawLines()
+
+    def getImageObject(self):
+        return self.image
 
     def saveImage(self):
         self.image.save("lines.jpg")
