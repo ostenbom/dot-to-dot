@@ -84,9 +84,7 @@ class LineConnecter():
         iteration = 1
         while T > stoppingTemp and iteration < iterations:
             candidate = self.currentSol[:]
-            upper = np.random.randint(1, len(self.coords))
-            lower = np.random.randint(0, len(self.coords) - upper)
-            candidate[lower:(lower+upper)] = reversed(candidate[lower:(lower+upper)])
+            candidate = self.selectByReverse(candidate)
             self.accept(candidate, T)
             T *= alpha
             iteration += 1
@@ -99,6 +97,19 @@ class LineConnecter():
         print ('Best fitness: ' + str(self.bestSolFitness))
         print ('Improvement: ' + str(initialFitness - self.bestSolFitness))
         return (self.bestSol, self.bestSolFitness)
+
+    def selectByReverse(self, candidate):
+        upper = np.random.randint(1, len(self.coords))
+        lower = np.random.randint(0, len(self.coords) - upper)
+        candidate[lower:(lower+upper)] = reversed(candidate[lower:(lower+upper)])
+
+        return candidate
+
+    def selectByRandomSwap(self, candidate):
+        a = np.random.randint(0, len(self.coords))
+        b = np.random.randint(0, len(self.coords))
+        candidate[a], candidate[b] = candidate[b], candidate[a]
+        return candidate
 
     def accept(self, candidate, T):
         candidateFitness = self.indexDistance(candidate)
