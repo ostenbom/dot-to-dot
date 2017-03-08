@@ -11,11 +11,14 @@ class SolutionSelectionImage():
         assert(len(potentialSolutions) == 6)
 
         self.potentialSolutions = potentialSolutions
+        self.width = width
+        self.height = height
 
+    def createSolutionSelectionImage(self):
         self.solutionImages = []
-        for image in potentialSolutions:
+        for image in self.potentialSolutions:
             flatPoints = [point for sublist in image for point in sublist]
-            out = OutputImage(flatPoints, width, height, True, False)
+            out = OutputImage(flatPoints, self.width, self.height, True, False)
 
             self.singleWidth = out.fullWidth
             self.singleHeight = out.fullHeight
@@ -27,9 +30,7 @@ class SolutionSelectionImage():
 
         self.image = Image.new("RGB", (int(self.totalWidth), int(self.totalHeight) + 1), color=WHITE)
 
-        self.createSolutionSelectionImage()
 
-    def createSolutionSelectionImage(self):
         placements = [
             (0, 0),
             (self.singleWidth, 0),
@@ -46,3 +47,6 @@ class SolutionSelectionImage():
 
     def saveImage(self):
         self.image.save("selectionImage.jpg")
+
+    def showImage(self):
+        self.image.show()

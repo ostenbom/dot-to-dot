@@ -45,20 +45,12 @@ outEdges.colorAllSegments()
 outEdges.saveImage("edges.jpg")
 outEdges.showImage()
 
-lineCollection = []
-for i in range(6):
-    distanceThreshold = 0.4 + (0.05 * i)
-    traceConverter = TraceConverter(traces, distanceThreshold)
-    lineCollection.append(traceConverter.getLines())
+traceConverter = TraceConverter(traces)
+lines = timeFunction(traceConverter.getLines)
 
-lineDetail = LineDetailViewing(lineCollection, width, height)
-lineDetail.createSolutionSelectionImage()
-lineDetail.saveImage()
-lineDetail.showImage()
-
-# outLines = OutputNonConnectedLines(lines, width, height)
-# outLines.saveImage()
-# outLines.showImage()
+outLines = OutputNonConnectedLines(lines, width, height)
+outLines.saveImage()
+outLines.showImage()
 
 # print ('Lines to connect: ' + str(len(lines)))
 #
