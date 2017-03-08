@@ -117,7 +117,7 @@ class OutputImage():
 
         ellipseX = point[0] * self.xScaling + OUTLINE_SPACE
         ellipseY = point[1] * self.yScaling + OUTLINE_SPACE
-        textX, textY, success = self.chooseTextPoint(ellipseX, ellipseY, number)
+        textX, textY, success = self.chooseTextPoint(ellipseX, ellipseY, number, ensureSpace)
 
         if not success and ensureSpace:
             return False
@@ -127,7 +127,7 @@ class OutputImage():
 
         return True
 
-    def chooseTextPoint(self, pointX, pointY, number):
+    def chooseTextPoint(self, pointX, pointY, number, ensureSpace):
         textWidth, textHeight = self.draw.textsize(str(number), self.font)
         possibleTextPositions = [
             (pointX + 2, pointY + 2),
@@ -147,7 +147,8 @@ class OutputImage():
 
 
         if not spaceExists:
-            print ('--- Overlap! No Space for Point: (' + str(pointX) + ', ' + str(pointY) + ') ---')
+            if ensureSpace:
+                print ('--- Overlap! No Space for Point: (' + str(pointX) + ', ' + str(pointY) + ') ---')
             return [textX, textY, False]
 
         return [textX, textY, True]
