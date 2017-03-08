@@ -1,18 +1,25 @@
 import math
 import sys
 import numpy as np
+import copy
 
 from DistanceUtils import lineAngle, distanceBetween, angleBetween
 
 TRACE_STEP = 3
-DISTANCE_THRESHOLD = 2
+DISTANCE_THRESHOLD = 0.55
 
 class TraceConverter():
 
-    def __init__(self, traces):
-        self.traces = traces
+    def __init__(self, traces, distanceThreshold = None):
+        self.traces = copy.deepcopy(traces)
         self.hasMadeLines = False
         self.lines = []
+
+        if not distanceThreshold:
+            self.distanceThreshold = DISTANCE_THRESHOLD
+        else:
+            print ('--- Threshold: ' + str(distanceThreshold) + ' ---')
+            self.distanceThreshold = distanceThreshold
 
     def getLines(self):
         if not self.hasMadeLines:
@@ -36,7 +43,7 @@ class TraceConverter():
                 if len(trace):
                     step.append(trace.pop(0))
 
-            while self.getLineDistanceAverage(step) < DISTANCE_THRESHOLD:
+            while self.getLineDistanceAverage(step) < self.distanceThreshold:
                 if len(trace):
                     step.append(trace.pop(0))
                 else:
