@@ -12,6 +12,7 @@ from OutputImage import OutputImage
 from OutputNonConnectedLines import OutputNonConnectedLines
 from IntermediateImage import IntermediateImage
 from SolutionSelectionImage import SolutionSelectionImage
+from LineDetailViewing import LineDetailViewing
 
 arguments = len(sys.argv)
 
@@ -42,27 +43,39 @@ traces = timeFunction(edgeFollower.getTraces)
 outEdges = IntermediateImage(traces, width, height)
 outEdges.colorAllSegments()
 outEdges.saveImage("edges.jpg")
+outEdges.showImage()
 
-traceConverter = TraceConverter(traces)
-lines = timeFunction(traceConverter.getLines)
+lineCollection = []
+for i in range(6):
+    distanceThreshold = 0.4 + (0.05 * i)
+    traceConverter = TraceConverter(traces, distanceThreshold)
+    lineCollection.append(traceConverter.getLines())
 
-print ('Lines to connect: ' + str(len(lines)))
+lineDetail = LineDetailViewing(lineCollection, width, height)
+lineDetail.createSolutionSelectionImage()
+lineDetail.saveImage()
+lineDetail.showImage()
 
-lineConnecter = LineConnecter(lines)
-# sortedLines = timeFunction(lineConnecter.getConnectedLines, 5)
-potentialSolutions = timeFunction(lineConnecter.tryConnecting, 6)
+# outLines = OutputNonConnectedLines(lines, width, height)
+# outLines.saveImage()
+# outLines.showImage()
 
-solutonSelection = SolutionSelectionImage(potentialSolutions, width, height)
-solutonSelection.saveImage()
-
-print ("Pick and image between 1 - 6")
-imagePick = int(input("Image Number: ")) - 1
-sortedLines = potentialSolutions[imagePick]
-
-outLines = OutputNonConnectedLines(lines, width, height)
-outLines.saveImage()
-
-pointsInOrder = [point for sublist in sortedLines for point in sublist]
-print ('Dots in image: ' + str(len(pointsInOrder)))
-out = OutputImage(pointsInOrder, width, height, True, True)
-out.saveImage()
+# print ('Lines to connect: ' + str(len(lines)))
+#
+# lineConnecter = LineConnecter(lines)
+# # sortedLines = timeFunction(lineConnecter.getConnectedLines, 5)
+# potentialSolutions = timeFunction(lineConnecter.tryConnecting, 6)
+#
+# solutonSelection = SolutionSelectionImage(potentialSolutions, width, height)
+# timeFunction(solutonSelection.createSolutionSelectionImage)
+# solutonSelection.showImage()
+# solutonSelection.saveImage()
+#
+# print ("Pick and image between 1 - 6")
+# imagePick = int(input("Image Number: ")) - 1
+# sortedLines = potentialSolutions[imagePick]
+#
+# pointsInOrder = [point for sublist in sortedLines for point in sublist]
+# print ('Dots in image: ' + str(len(pointsInOrder)))
+# out = OutputImage(pointsInOrder, width, height, True, True)
+# out.saveImage()
