@@ -7,12 +7,14 @@ from EdgeMatrix import EdgeMatrix
 from EdgeFollower import EdgeFollower
 from TraceConverter import TraceConverter
 from LineConnecter import LineConnecter
+from CannyScorer import CannyScorer
 
 from OutputImage import OutputImage
 from OutputNonConnectedLines import OutputNonConnectedLines
 from IntermediateImage import IntermediateImage
 from SolutionSelectionImage import SolutionSelectionImage
 from LineDetailViewing import LineDetailViewing
+from ConnectionImage import ConnectionImage
 
 arguments = len(sys.argv)
 
@@ -33,9 +35,11 @@ width = imageData.width
 height = imageData.height
 
 edgeDetector = EdgeDetector(fileName)
-edgesNumberMatrix = timeFunction(edgeDetector.getCannyImage)
+edgesNumberMatrix = timeFunction(edgeDetector.getCannyEdges)
 
 edgeMatrix = EdgeMatrix(edgesNumberMatrix)
+
+lineScoring = CannyScorer(edgeMatrix, edgeDetector.getCannyImage(), width, height)
 
 edgeFollower = EdgeFollower(edgeMatrix, width, height)
 traces = timeFunction(edgeFollower.getTraces)
@@ -48,16 +52,22 @@ outEdges.showImage()
 traceConverter = TraceConverter(traces)
 lines = timeFunction(traceConverter.getLines)
 
-outLines = OutputNonConnectedLines(lines, width, height)
-outLines.saveImage()
-outLines.showImage()
+# outLines = OutputNonConnectedLines(lines, width, height)
+# outLines.saveImage()
+# outLines.showImage()
 
-# print ('Lines to connect: ' + str(len(lines)))
-#
-# lineConnecter = LineConnecter(lines)
-# # sortedLines = timeFunction(lineConnecter.getConnectedLines, 5)
+print ('Lines to connect: ' + str(len(lines)))
+
+lineConnecter = LineConnecter(lines)
+# sortedLines = timeFunction(lineConnecter.getConnectedLines, 5)
 # potentialSolutions = timeFunction(lineConnecter.tryConnecting, 6)
-#
+
+oneSolution = timeFunction(lineConnecter.getConnectedLines, 1)
+
+connectionImage = ConnectionImage(oneSolution, lineScoring, width, height)
+connectionImage.drawInbetweenLines()
+connectionImage.showImage()
+
 # solutonSelection = SolutionSelectionImage(potentialSolutions, width, height)
 # timeFunction(solutonSelection.createSolutionSelectionImage)
 # solutonSelection.showImage()
