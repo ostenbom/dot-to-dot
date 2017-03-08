@@ -31,14 +31,18 @@ class EdgeDetector():
         upper = int(min(255, (1.0 + sigma) * median))
         return cv2.Canny(image, lower, upper)
 
+    def getCannyEdges(self):
+        edges = self.getAutoCannyEdgePoints(self.blurred)
+
+        return edges
+
     def getCannyImage(self):
         edges = self.getAutoCannyEdgePoints(self.blurred)
 
         height, width, channels = self.image.shape
         image = self.createCannyImage(width, height, edges)
-        # image.show()
 
-        return edges
+        return image
 
     def chooseCannyImage(self, choose=DEFAULT_IMAGES_TO_CHOOSE):
         thresholdStep = int(100.0 / (choose + 1))
