@@ -5,7 +5,7 @@ import copy
 
 from DistanceUtils import lineAngle, distanceBetween, angleBetween
 
-TRACE_STEP = 3
+TRACE_STEP = 5
 DISTANCE_THRESHOLD = 0.55
 
 class TraceConverter():
@@ -38,18 +38,18 @@ class TraceConverter():
         line = [trace[0]]
 
         while len(trace):
-            step = []
+            lineSection = []
             for i in range(TRACE_STEP):
                 if len(trace):
-                    step.append(trace.pop(0))
+                    lineSection.append(trace.pop(0))
 
-            while self.getLineDistanceAverage(step) < self.distanceThreshold:
+            while self.getLineDistanceAverage(lineSection) < self.distanceThreshold:
                 if len(trace):
-                    step.append(trace.pop(0))
+                    lineSection.append(trace.pop(0))
                 else:
                     break
 
-            line.append(step[-1])
+            line.append(lineSection[-1])
 
         return line
 
@@ -58,14 +58,17 @@ class TraceConverter():
         xs = [p[0] for p in points]
         ys = [p[1] for p in points]
 
-        a, c = np.polyfit(xs, ys, 1)
-        b = -1
+        if all([xs[0] == x for x in xs]) or all([ys[0] == y for y in ys]):
+            return 0
+
+        a1, c1 = np.polyfit(xs, ys, 1)
+        b1 = -1
 
         distanceAvg = 0
         for point in points:
             x = point[0]
             y = point[1]
-            distanceAvg += float(abs(a*x + b*y + c))/math.sqrt(a**2 + b**2)
+            distanceAvg += float(abs(a1*x + b1*y + c1))/math.sqrt(a1**2 + b1**2)
         distanceAvg = distanceAvg / len(points)
 
         return distanceAvg
