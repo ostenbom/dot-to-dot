@@ -111,9 +111,9 @@ class OutputImage():
 
     def drawPointWithNumber(self, point, number, color, ensureSpace):
         if number == 1:
-            pointSize = 4
+            pointSize = 5
         else:
-            pointSize = 2
+            pointSize = 3
 
         ellipseX = point[0] * self.xScaling + OUTLINE_SPACE
         ellipseY = point[1] * self.yScaling + OUTLINE_SPACE

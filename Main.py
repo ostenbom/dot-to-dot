@@ -60,14 +60,18 @@ print ('Lines to connect: ' + str(len(lines)))
 
 lineConnecter = LineConnecter(lines)
 # sortedLines = timeFunction(lineConnecter.getConnectedLines, 5)
-# potentialSolutions = timeFunction(lineConnecter.tryConnecting, 6)
 
-oneSolution = timeFunction(lineConnecter.getConnectedLines, 1)
+greedyLines = timeFunction(lineConnecter.bestOfManyGreedys, 50)
 
-connectionImage = ConnectionImage(oneSolution, lineScoring, width, height)
-connectionImage.drawInbetweenLines()
-connectionImage.showImage()
+# Lines inbetween score image
+# oneSolution = timeFunction(lineConnecter.getConnectedLines, 1)
+# connectionImage = ConnectionImage(oneSolution, lineScoring, width, height)
+# connectionImage.drawInbetweenLines()
+# connectionImage.showImage()
 
+
+# Solution Picking
+# potentialSolutions = timeFunction(lineConnecter.tryConnectingWithAnneal, 6)
 # solutonSelection = SolutionSelectionImage(potentialSolutions, width, height)
 # timeFunction(solutonSelection.createSolutionSelectionImage)
 # solutonSelection.showImage()
@@ -79,5 +83,12 @@ connectionImage.showImage()
 #
 # pointsInOrder = [point for sublist in sortedLines for point in sublist]
 # print ('Dots in image: ' + str(len(pointsInOrder)))
-# out = OutputImage(pointsInOrder, width, height, True, True)
+# out = OutputImage(pointsInOrder, width, height, True, False)
 # out.saveImage()
+# out.showImage()
+
+greedyPoints = [point for sublist in greedyLines for point in sublist]
+print ('Dots in image: ' + str(len(greedyPoints)))
+out = OutputImage(greedyPoints, width, height, True, False)
+out.saveImage()
+out.showImage()
