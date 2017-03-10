@@ -119,7 +119,11 @@ class EdgeFollower():
         # Get the linear coefficients for the ahead and behind directions
         behindDirection = self.getBehindDirection(point, trace)
         for ahead in aheadTraces:
-            aheadDirections.append(self.aheadDirectionAngle(ahead))
+            if len(ahead) > 1:
+                aheadDirections.append(self.aheadDirectionAngle(ahead))
+            else:
+                aheadDirections.append(360)
+
 
         currentBest = 360
         bestIndex = -1

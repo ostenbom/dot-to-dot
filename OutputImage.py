@@ -1,3 +1,5 @@
+import math
+import cairocffi as cairo
 from PIL import Image, ImageDraw, ImageFont
 
 BASE_IMAGE_WIDTH = 5000
@@ -8,7 +10,7 @@ MIN_FONT_SIZE = 9
 
 NUMBERS_PER_COLOUR = 100
 WHITE = (255, 255, 255)
-COLOURS = [(0, 0, 200), (50, 50, 50), (200, 0, 200), (200, 0, 0), (200, 100, 0), (200, 200, 0), (0, 200, 0), (0, 200, 200)]
+COLOURS = [(0, 0, 200), (50, 50, 50), (200, 0, 200), (200, 0, 0), (200, 100, 0), (0, 0, 0), (0, 200, 0), (0, 200, 200)]
 OUTLINE_SPACE = 50
 
 class OutputImage():
@@ -25,12 +27,15 @@ class OutputImage():
 
         drawFunc = self.drawLines if drawLines else self.drawPoints
 
+        self.pointPositions = []
+
         if ensureSpace:
-            while self.base < BASE_LIMIT and not drawFunc(True):
+            while self.base < BASE_LIMIT and not drawFunc(True, False):
                 self.setInitialValuesFromBase(self.base + 500, self.fontSize - 0.5)
 
         self.setInitialValuesFromBase(self.base, self.fontSize)
-        drawFunc(False)
+        drawFunc(False, True)
+        self.drawAsPdf(False)
 
     def setInitialValuesFromBase(self, base, fontSize):
         self.base = base
@@ -60,14 +65,55 @@ class OutputImage():
     def getImageObject(self):
         return self.image
 
-    def saveImage(self):
-        self.image.save("dots.jpg")
+    def saveImage(self, path = None):
+        if not path:
+            path = 'dots.jpg'
+
+        self.image.save(path)
 
     def showImage(self):
         self.image.show()
 
-    def drawLines(self, ensureSpace):
-        if not self.drawPoints(ensureSpace):
+
+    def drawAsPdf(self, drawLines):
+        ps = cairo.PDFSurface("dots.pdf", self.fullWidth, self.fullHeight)
+        cr = cairo.Context(ps)
+
+        cr.set_source_rgb(0, 0, 0)
+        cr.set_line_width(2)
+        cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL,
+            cairo.FONT_WEIGHT_NORMAL)
+        cr.set_font_size(int(self.fontSize) + 15)
+
+        self.drawPDFPoints(cr)
+        if drawLines:
+            self.drawPDFLines(cr)
+
+
+    def drawPDFLines(self, cr):
+        cr.set_source_rgb(0, 0, 0)
+        points = self.points[:]
+
+        i = 1
+        prev = points.pop(0)
+
+        while len(points):
+            curr = points.pop(0)
+            self.drawPDFLine(cr, prev, curr)
+            prev = curr
+
+    def drawPDFLine(self, cr, p1, p2):
+        x1 = p1[0] * self.xScaling + OUTLINE_SPACE
+        x2 = p2[0] * self.xScaling + OUTLINE_SPACE
+
+        y1 = p1[1] * self.yScaling + OUTLINE_SPACE
+        y2 = p2[1] * self.yScaling + OUTLINE_SPACE
+        cr.move_to(x1, y1)
+        cr.line_to(x2, y2)
+        cr.stroke()
+
+    def drawLines(self, ensureSpace, savePointPositions):
+        if not self.drawPoints(ensureSpace, savePointPositions):
             return False
 
         points = self.points[:]
@@ -75,7 +121,7 @@ class OutputImage():
         i = 1
         color = self.pickNextColor()
         prev = points.pop(0)
-        self.drawPointWithNumber(prev, i, color, ensureSpace)
+        self.drawPointWithNumber(prev, i, color, ensureSpace, savePointPositions)
         i += 1
 
         while len(points):
@@ -97,19 +143,50 @@ class OutputImage():
 
         self.draw.line([(x1, y1), (x2, y2)], fill=color, width=2)
 
-    def drawPoints(self, ensureSpace):
+    def drawPoints(self, ensureSpace, savePointPositions):
+        if savePointPositions:
+            self.pointPositions = []
         i = 1
         color = self.pickNextColor()
         for point in self.points:
             if i % NUMBERS_PER_COLOUR == 0:
                 color = self.pickNextColor()
-            if not self.drawPointWithNumber(point, i, color, ensureSpace) and ensureSpace:
+            if not self.drawPointWithNumber(point, i, color, ensureSpace, savePointPositions) and ensureSpace:
                 return False
             i += 1
 
         return True
 
-    def drawPointWithNumber(self, point, number, color, ensureSpace):
+    def drawPDFPoints(self, cr):
+        i = 1
+        colour = self.pickNextColor()
+        for j, point in enumerate(self.points):
+            if i % NUMBERS_PER_COLOUR == 0:
+                colour = self.pickNextColor()
+            self.drawPDFCircle(cr, point, colour)
+            self.drawPDFText(cr, i, self.pointPositions[j], colour)
+            i += 1
+
+    def drawPDFCircle(self, cr, point, colour):
+        x = point[0] * self.xScaling + OUTLINE_SPACE
+        y = point[1] * self.yScaling + OUTLINE_SPACE
+
+        r, g, b = self.colourToFloats(colour)
+        cr.set_source_rgb(r, g, b)
+        cr.move_to(x, y)
+        cr.arc(x, y, 2, 0, 2 * math.pi)
+        cr.fill()
+
+    def drawPDFText(self, cr, number, point, colour):
+        x = point[0]
+        y = point[1]
+
+        cr.move_to(x, y)
+        r, g, b = self.colourToFloats(colour)
+        cr.set_source_rgb(r, g, b)
+        cr.show_text(str(number))
+
+    def drawPointWithNumber(self, point, number, color, ensureSpace, savePointPositions):
         if number == 1:
             pointSize = 5
         else:
@@ -118,6 +195,8 @@ class OutputImage():
         ellipseX = point[0] * self.xScaling + OUTLINE_SPACE
         ellipseY = point[1] * self.yScaling + OUTLINE_SPACE
         textX, textY, success = self.chooseTextPoint(ellipseX, ellipseY, number, ensureSpace)
+        if savePointPositions:
+            self.pointPositions.append(((textX, textY)))
 
         if not success and ensureSpace:
             return False
@@ -164,3 +243,10 @@ class OutputImage():
         color = COLOURS[self.colorIndex]
         self.colorIndex = (self.colorIndex + 1) % 8
         return color
+
+    def colourToFloats(self, colour):
+        r = float(colour[0]) / 255
+        g = float(colour[1]) / 255
+        b = float(colour[2]) / 255
+
+        return r, g, b

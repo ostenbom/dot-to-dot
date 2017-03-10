@@ -1,3 +1,4 @@
+import os
 import sys
 import time
 from PIL import Image
@@ -19,9 +20,12 @@ from ConnectionImage import ConnectionImage
 arguments = len(sys.argv)
 
 if arguments > 1:
-    fileName = sys.argv[1]
+    fullFilePath = sys.argv[1]
 else:
-    fileName = "testimages/simple.jpg"
+    fullFilePath = "testimages/simple.jpg"
+
+fileName = os.path.split(fullFilePath)[-1]
+outPath = 'out/' + fileName
 
 def timeFunction(function, *args):
     start = time.clock()
@@ -30,11 +34,12 @@ def timeFunction(function, *args):
     print ('--- ' + str(function.__name__) + ' --- Time: ' + str(end - start) + ' ---')
     return returnValue
 
-imageData = Image.open(fileName)
+
+imageData = Image.open(fullFilePath)
 width = imageData.width
 height = imageData.height
 
-edgeDetector = EdgeDetector(fileName)
+edgeDetector = EdgeDetector(fullFilePath)
 edgesNumberMatrix = timeFunction(edgeDetector.getCannyEdges)
 
 edgeMatrix = EdgeMatrix(edgesNumberMatrix)
@@ -47,7 +52,6 @@ traces = timeFunction(edgeFollower.getTraces)
 outEdges = IntermediateImage(traces, width, height)
 outEdges.colorAllSegments()
 outEdges.saveImage("edges.jpg")
-outEdges.showImage()
 
 traceConverter = TraceConverter(traces)
 lines = timeFunction(traceConverter.getLines)
@@ -89,6 +93,5 @@ greedyLines = timeFunction(lineConnecter.bestOfManyGreedys, 50)
 
 greedyPoints = [point for sublist in greedyLines for point in sublist]
 print ('Dots in image: ' + str(len(greedyPoints)))
-out = OutputImage(greedyPoints, width, height, True, False)
-out.saveImage()
-out.showImage()
+out = OutputImage(greedyPoints, width, height, True, True)
+out.saveImage(outPath)
