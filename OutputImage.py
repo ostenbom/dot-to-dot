@@ -3,10 +3,12 @@ import cairocffi as cairo
 from PIL import Image, ImageDraw, ImageFont
 
 BASE_IMAGE_WIDTH = 5000
-BASE_LIMIT = 15000
+BASE_LIMIT = 7000
 
 INITIAL_FONT_SIZE = 12
 MIN_FONT_SIZE = 9
+
+PDF_FONT_ADD = 24
 
 NUMBERS_PER_COLOUR = 100
 WHITE = (255, 255, 255)
@@ -83,7 +85,7 @@ class OutputImage():
         cr.set_line_width(2)
         cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL,
             cairo.FONT_WEIGHT_NORMAL)
-        cr.set_font_size(int(self.fontSize) + 15)
+        cr.set_font_size(int(self.fontSize) + PDF_FONT_ADD)
 
         self.drawPDFPoints(cr)
         if drawLines:
