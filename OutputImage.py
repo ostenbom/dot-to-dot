@@ -5,10 +5,8 @@ from PIL import Image, ImageDraw, ImageFont
 BASE_IMAGE_WIDTH = 5000
 BASE_LIMIT = 7000
 
-INITIAL_FONT_SIZE = 12
+INITIAL_FONT_SIZE = 20
 MIN_FONT_SIZE = 9
-
-PDF_FONT_ADD = 24
 
 NUMBERS_PER_COLOUR = 100
 WHITE = (255, 255, 255)
@@ -85,7 +83,7 @@ class OutputImage():
         cr.set_line_width(2)
         cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL,
             cairo.FONT_WEIGHT_NORMAL)
-        cr.set_font_size(int(self.fontSize) + PDF_FONT_ADD)
+        cr.set_font_size(int(self.fontSize))
 
         self.drawPDFPoints(cr)
         if drawLines:
@@ -120,17 +118,13 @@ class OutputImage():
 
         points = self.points[:]
 
-        i = 1
         color = self.pickNextColor()
         prev = points.pop(0)
-        self.drawPointWithNumber(prev, i, color, ensureSpace, savePointPositions)
-        i += 1
 
         while len(points):
             current = points.pop(0)
             self.drawLineBetweenPoints(prev, current)
             prev = current
-            i += 1
 
         return True
 
@@ -166,39 +160,49 @@ class OutputImage():
             if i % NUMBERS_PER_COLOUR == 0:
                 colour = self.pickNextColor()
             self.drawPDFCircle(cr, point, colour)
-            self.drawPDFText(cr, i, self.pointPositions[j], colour)
+            self.drawPDFText(cr, i, point, self.pointPositions[j], colour)
             i += 1
 
     def drawPDFCircle(self, cr, point, colour):
         x = point[0] * self.xScaling + OUTLINE_SPACE
         y = point[1] * self.yScaling + OUTLINE_SPACE
 
+        pointSize = 4
+
         r, g, b = self.colourToFloats(colour)
         cr.set_source_rgb(r, g, b)
         cr.move_to(x, y)
-        cr.arc(x, y, 2, 0, 2 * math.pi)
+        cr.arc(x, y, pointSize, 0, pointSize * math.pi)
         cr.fill()
 
-    def drawPDFText(self, cr, number, point, colour):
-        x = point[0]
-        y = point[1]
+    def drawPDFText(self, cr, number, point, positionIndex, colour):
+        pointX = point[0] * self.xScaling + OUTLINE_SPACE
+        pointY = point[1] * self.yScaling + OUTLINE_SPACE
 
+        _, _, textWidth, textHeight, _, _ = cr.text_extents(str(number))
+
+        pointSize = 4
+
+        possibleTextPositions = [
+            (pointX + pointSize, pointY + pointSize + textHeight),
+            (pointX + pointSize, pointY - pointSize),
+            (pointX - pointSize - textWidth, pointY - pointSize),
+            (pointX - pointSize - textWidth, pointY + pointSize + textHeight)]
+
+        x, y = possibleTextPositions[positionIndex]
         cr.move_to(x, y)
         r, g, b = self.colourToFloats(colour)
         cr.set_source_rgb(r, g, b)
         cr.show_text(str(number))
 
     def drawPointWithNumber(self, point, number, color, ensureSpace, savePointPositions):
-        if number == 1:
-            pointSize = 5
-        else:
-            pointSize = 3
+        pointSize = 3
 
         ellipseX = point[0] * self.xScaling + OUTLINE_SPACE
         ellipseY = point[1] * self.yScaling + OUTLINE_SPACE
-        textX, textY, success = self.chooseTextPoint(ellipseX, ellipseY, number, ensureSpace)
+        textX, textY, positionIndex, success = self.chooseTextPoint(ellipseX, ellipseY, number, ensureSpace)
         if savePointPositions:
-            self.pointPositions.append(((textX, textY)))
+            self.pointPositions.append(positionIndex)
 
         if not success and ensureSpace:
             return False
@@ -213,8 +217,8 @@ class OutputImage():
         possibleTextPositions = [
             (pointX + 2, pointY + 2),
             (pointX + 2, pointY - 2 - textHeight),
-            (pointX - 2 - textWidth, pointY + 2),
-            (pointX - 2 - textWidth, pointY - 2 - textHeight)]
+            (pointX - 2 - textWidth, pointY - 2 - textHeight),
+            (pointX - 2 - textWidth, pointY + 2)]
 
 
         spaceExists = False
@@ -226,13 +230,12 @@ class OutputImage():
                 spaceExists = True
                 break
 
-
         if not spaceExists:
             if ensureSpace:
                 print ('--- Overlap! No Space for Point: (' + str(pointX) + ', ' + str(pointY) + ') ---')
-            return [textX, textY, False]
+            return [textX, textY, possibleTextPositions.index((textX, textY)), False]
 
-        return [textX, textY, True]
+        return [textX, textY, possibleTextPositions.index((textX, textY)), True]
 
     def overlaps(self, textX, textY, width, height):
         for x in range(int(textX), int(textX + width + 1)):
