@@ -40,29 +40,6 @@ class LineConnector():
         bestGreedy = min(greedySolutions, key=lambda x: x[1])
         return self.solutionIndexesToLines(bestGreedy[0])
 
-    def tryConnectingWithAnneal(self, times):
-        initialSolutions = [self.greedySolution() for i in range(times)]
-        differentSolutions = []
-
-        for sol in initialSolutions:
-            potentialSolution, potentialFitness = self.anneal(sol)
-            differentSolutions.append(self.solutionIndexesToLines(potentialSolution))
-
-        return differentSolutions
-
-
-    def getConnectedLines(self, tries):
-        initialSolutions = [self.greedySolution() for i in range(tries)]
-        optimizedSolutions = []
-        for sol in initialSolutions:
-            potentialSolution, potentialFitness = self.anneal(sol)
-            optimizedSolutions.append((potentialSolution, potentialFitness))
-        bestSolution = min(optimizedSolutions, key=lambda x: x[1])
-        print ('--- --- Best Solution: ' + str(bestSolution[1]) + ' --- ---')
-        solution = self.solutionIndexesToLines(bestSolution[0])
-        self.solution = solution
-        return solution
-
     def greedySolution(self):
         current = np.random.randint(0, len(self.indexes))
         currentEnd = self.otherEndIndex(current)
@@ -81,65 +58,6 @@ class LineConnector():
             greedySol.append(current)
 
         return greedySol
-
-    def anneal(self, initial, iterations = 10000):
-        T = math.sqrt(len(self.coords))
-        print ('--- Annealing ' + str(iterations) + ' Initial Temp: ' + str(T) + ' ---')
-        alpha = 0.995
-        stoppingTemp = 0.00000001
-
-        initialFitness = self.indexDistance(initial)
-
-        self.currentSol = initial[:]
-        self.currentSolFitness = self.indexDistance(self.currentSol)
-        self.bestSol = self.currentSol[:]
-        self.bestSolFitness = self.currentSolFitness
-
-        iteration = 1
-        while T > stoppingTemp and iteration < iterations:
-            candidate = self.currentSol[:]
-            candidate = self.selectByReverse(candidate)
-            self.accept(candidate, T)
-            T *= alpha
-            iteration += 1
-
-        if T > stoppingTemp:
-            print ('Ended for Temperature, Iterations: ' + str(iteration))
-        else:
-            print ('Ended for Iterations, Temperature: ' + str(T))
-
-        print ('Best fitness: ' + str(self.bestSolFitness))
-        print ('Improvement: ' + str(initialFitness - self.bestSolFitness))
-        return (self.bestSol, self.bestSolFitness)
-
-    def selectByReverse(self, candidate):
-        upper = np.random.randint(1, len(self.coords))
-        lower = np.random.randint(0, len(self.coords) - upper)
-        candidate[lower:(lower+upper)] = reversed(candidate[lower:(lower+upper)])
-
-        return candidate
-
-    def selectByRandomSwap(self, candidate):
-        a = np.random.randint(0, len(candidate))
-        b = np.random.randint(0, len(candidate))
-        candidate[a], candidate[b] = candidate[b], candidate[a]
-        return candidate
-
-    def accept(self, candidate, T):
-        candidateFitness = self.indexDistance(candidate)
-        if candidateFitness < self.currentSolFitness:
-            self.currentSol = candidate
-            self.currentSolFitness = candidateFitness
-            if candidateFitness < self.bestSolFitness:
-                self.bestSol = candidate
-                self.bestSolFitness = candidateFitness
-        else:
-            if np.random.random_sample() < self.pAccept(candidateFitness, self.currentSolFitness, T):
-                self.currentSol = candidate
-                self.currentSolFitness = candidateFitness
-
-    def pAccept(self, candidateFitness, currentFitness, T):
-        return math.exp(-abs(candidateFitness - currentFitness) / T)
 
     def indexDistance(self, sol):
         total = np.sum([self.distanceMatrix[int(self.otherEndIndex(sol[i - 1]))][int(sol[i])] for i in range(1, len(sol))])
