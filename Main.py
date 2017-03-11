@@ -8,6 +8,7 @@ from EdgeMatrix import EdgeMatrix
 from EdgeFollower import EdgeFollower
 from TraceConverter import TraceConverter
 from LineConnector import LineConnector
+from DotCleanup import DotCleanup
 from CannyScorer import CannyScorer
 
 from OutputImage import OutputImage
@@ -63,35 +64,13 @@ lines = timeFunction(traceConverter.getLines)
 print ('Lines to connect: ' + str(len(lines)))
 
 lineConnector = LineConnector(lines)
-# sortedLines = timeFunction(lineConnector.getConnectedLines, 5)
-
 greedyLines = timeFunction(lineConnector.bestOfManyGreedys, 50)
-
-# Lines inbetween score image
-# oneSolution = timeFunction(lineConnector.getConnectedLines, 1)
-# connectionImage = ConnectionImage(oneSolution, lineScoring, width, height)
-# connectionImage.drawInbetweenLines()
-# connectionImage.showImage()
-
-
-# Solution Picking
-# potentialSolutions = timeFunction(lineConnector.tryConnectingWithAnneal, 6)
-# solutonSelection = SolutionSelectionImage(potentialSolutions, width, height)
-# timeFunction(solutonSelection.createSolutionSelectionImage)
-# solutonSelection.showImage()
-# solutonSelection.saveImage()
-#
-# print ("Pick and image between 1 - 6")
-# imagePick = int(input("Image Number: ")) - 1
-# sortedLines = potentialSolutions[imagePick]
-#
-# pointsInOrder = [point for sublist in sortedLines for point in sublist]
-# print ('Dots in image: ' + str(len(pointsInOrder)))
-# out = OutputImage(pointsInOrder, width, height, True, False)
-# out.saveImage()
-# out.showImage()
-
 greedyPoints = [point for sublist in greedyLines for point in sublist]
-print ('Dots in image: ' + str(len(greedyPoints)))
-out = OutputImage(greedyPoints, width, height, True, True)
+
+print ('Dots before clean: ' + str(len(greedyPoints)))
+dotCleaner = DotCleanup(greedyPoints, width, height)
+cleanPoints = dotCleaner.getCleanedDots()
+
+print ('Dots in image: ' + str(len(cleanPoints)))
+out = OutputImage(cleanPoints, width, height, True, True)
 out.saveImage(outPath)
