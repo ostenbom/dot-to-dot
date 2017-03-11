@@ -6,7 +6,7 @@ from scipy import optimize
 
 from DistanceUtils import distanceBetween
 
-class LineConnecter():
+class LineConnector():
 
     def __init__(self, lines):
         self.lines = lines

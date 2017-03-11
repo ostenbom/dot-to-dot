@@ -7,7 +7,7 @@ from EdgeDetector import EdgeDetector
 from EdgeMatrix import EdgeMatrix
 from EdgeFollower import EdgeFollower
 from TraceConverter import TraceConverter
-from LineConnecter import LineConnecter
+from LineConnector import LineConnector
 from CannyScorer import CannyScorer
 
 from OutputImage import OutputImage
@@ -62,20 +62,20 @@ lines = timeFunction(traceConverter.getLines)
 
 print ('Lines to connect: ' + str(len(lines)))
 
-lineConnecter = LineConnecter(lines)
-# sortedLines = timeFunction(lineConnecter.getConnectedLines, 5)
+lineConnector = LineConnector(lines)
+# sortedLines = timeFunction(lineConnector.getConnectedLines, 5)
 
-greedyLines = timeFunction(lineConnecter.bestOfManyGreedys, 50)
+greedyLines = timeFunction(lineConnector.bestOfManyGreedys, 50)
 
 # Lines inbetween score image
-# oneSolution = timeFunction(lineConnecter.getConnectedLines, 1)
+# oneSolution = timeFunction(lineConnector.getConnectedLines, 1)
 # connectionImage = ConnectionImage(oneSolution, lineScoring, width, height)
 # connectionImage.drawInbetweenLines()
 # connectionImage.showImage()
 
 
 # Solution Picking
-# potentialSolutions = timeFunction(lineConnecter.tryConnectingWithAnneal, 6)
+# potentialSolutions = timeFunction(lineConnector.tryConnectingWithAnneal, 6)
 # solutonSelection = SolutionSelectionImage(potentialSolutions, width, height)
 # timeFunction(solutonSelection.createSolutionSelectionImage)
 # solutonSelection.showImage()
