@@ -3,7 +3,7 @@ import math
 from DistanceUtils import distanceBetween
 
 LONGEST_LINE_DIVISION = 5
-SMALLEST_LINE_DIVISION = 100
+SMALLEST_LINE_DIVISION = 300
 
 class DotCleanup():
     def __init__(self, dots, width, height):
@@ -11,7 +11,9 @@ class DotCleanup():
 
         maxDimension = width if width > height else height
         self.maxLineLength = int(float(maxDimension) / LONGEST_LINE_DIVISION)
+        print ('Longest Line: ' + str(self.maxLineLength))
         self.minLineLength = int(float(maxDimension) / SMALLEST_LINE_DIVISION)
+        print ('Shortest Line: ' + str(self.minLineLength))
 
     def getCleanedDots(self):
         dots = self.dots[:]

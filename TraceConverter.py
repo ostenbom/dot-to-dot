@@ -29,9 +29,18 @@ class TraceConverter():
 
     def convertTracesToLines(self):
         lines = []
+        print('Converting Traces to Lines')
+        i = 0
         for trace in self.traces:
+            # Print Progress dots
+            i += 1
+            if i % len(self.traces) / 50 == 0:
+                sys.stdout.write('.')
+                sys.stdout.flush()
+
             lines.append(self.traceToLine(trace))
 
+        print ('Done')
         return lines
 
     def traceToLine(self, trace):

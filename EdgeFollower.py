@@ -28,13 +28,23 @@ class EdgeFollower():
 
     def findTraces(self):
         traces = []
+        progressStep = len(self.points) / 50
 
+        print('Following Traces')
+        i = 0
         while len(self.points):
+            # Progress Dots
+            i += 1
+            if i % 10 == 0:
+                sys.stdout.write('.')
+                sys.stdout.flush()
+
             point = self.points.pop(0)
             trace = self.makeTrace(point)
             if len(trace) > TRACE_SIZE_THRESHOLD:
                 traces.append(trace)
 
+        print('Done')
         return traces
 
     def makeTrace(self, startingPoint, limit = sys.maxint, persistent = True):

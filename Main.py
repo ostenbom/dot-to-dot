@@ -9,14 +9,9 @@ from EdgeFollower import EdgeFollower
 from TraceConverter import TraceConverter
 from LineConnector import LineConnector
 from DotCleanup import DotCleanup
-from CannyScorer import CannyScorer
 
 from OutputImage import OutputImage
-from OutputNonConnectedLines import OutputNonConnectedLines
 from IntermediateImage import IntermediateImage
-from SolutionSelectionImage import SolutionSelectionImage
-from LineDetailViewing import LineDetailViewing
-from ConnectionImage import ConnectionImage
 
 arguments = len(sys.argv)
 
@@ -45,8 +40,6 @@ edgesNumberMatrix = timeFunction(edgeDetector.getCannyEdges)
 
 edgeMatrix = EdgeMatrix(edgesNumberMatrix)
 
-lineScoring = CannyScorer(edgeMatrix, edgeDetector.getCannyImage(), width, height)
-
 edgeFollower = EdgeFollower(edgeMatrix, width, height)
 traces = timeFunction(edgeFollower.getTraces)
 
@@ -56,10 +49,6 @@ outEdges.saveImage("edges.jpg")
 
 traceConverter = TraceConverter(traces)
 lines = timeFunction(traceConverter.getLines)
-
-# outLines = OutputNonConnectedLines(lines, width, height)
-# outLines.saveImage()
-# outLines.showImage()
 
 print ('Lines to connect: ' + str(len(lines)))
 
