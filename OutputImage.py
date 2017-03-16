@@ -5,8 +5,11 @@ from PIL import Image, ImageDraw, ImageFont
 BASE_IMAGE_WIDTH = 5000
 BASE_LIMIT = 7000
 
-INITIAL_FONT_SIZE = 20
-MIN_FONT_SIZE = 9
+A3_WIDTH = 842
+A3_HEIGHT = 1191
+
+INITIAL_FONT_SIZE = 8
+MIN_FONT_SIZE = 8
 
 NUMBERS_PER_COLOUR = 100
 WHITE = (255, 255, 255)
@@ -22,7 +25,7 @@ class OutputImage():
 
         self.imageRatio = float(self.originalHeight) / float(self.originalWidth)
 
-        self.base = BASE_IMAGE_WIDTH
+        self.base = A3_WIDTH if originalHeight > originalWidth else A3_HEIGHT
         self.setInitialValuesFromBase(self.base, INITIAL_FONT_SIZE)
 
         drawFunc = self.drawLines if drawLines else self.drawPoints
@@ -75,8 +78,10 @@ class OutputImage():
         self.image.show()
 
 
-    def drawAsPdf(self, drawLines):
-        ps = cairo.PDFSurface("dots.pdf", self.fullWidth, self.fullHeight)
+    def drawAsPdf(self, drawLines, path = None):
+        if not path:
+            path = "dots.pdf"
+        ps = cairo.PDFSurface(path, self.fullWidth, self.fullHeight)
         cr = cairo.Context(ps)
 
         cr.set_source_rgb(0, 0, 0)
@@ -167,12 +172,12 @@ class OutputImage():
         x = point[0] * self.xScaling + OUTLINE_SPACE
         y = point[1] * self.yScaling + OUTLINE_SPACE
 
-        pointSize = 4
+        pointSize = 2
 
         r, g, b = self.colourToFloats(colour)
         cr.set_source_rgb(r, g, b)
         cr.move_to(x, y)
-        cr.arc(x, y, pointSize, 0, pointSize * math.pi)
+        cr.arc(x, y, pointSize, 0, 2 * math.pi)
         cr.fill()
 
     def drawPDFText(self, cr, number, point, positionIndex, colour):
