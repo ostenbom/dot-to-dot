@@ -3,7 +3,7 @@ import math
 from DistanceUtils import distanceBetween
 
 LONGEST_LINE_DIVISION = 5
-SMALLEST_LINE_DIVISION = 300
+SMALLEST_LINE_DIVISION = 100
 
 class DotCleanup():
     def __init__(self, dots, width, height):

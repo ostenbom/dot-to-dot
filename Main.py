@@ -31,35 +31,53 @@ def timeFunction(function, *args):
     return returnValue
 
 
-imageData = Image.open(fullFilePath)
-width = imageData.width
-height = imageData.height
+TEMP_IMG_NAME = "temp_in.jpg"
 
-edgeDetector = EdgeDetector(fullFilePath)
-edgesNumberMatrix = timeFunction(edgeDetector.getCannyEdges)
+inputImageDimension = 1200
+dotsInImage = 1000
+while(dotsInImage > 700 and inputImageDimension > 300):
+    inputImageDimension -= 200
+    print('Image Dimensions now at: ' + str(inputImageDimension))
+    imageData = Image.open(fullFilePath)
+    width = imageData.width
+    height = imageData.height
+    maxDimension = width if width > height else height
+    if (maxDimension > inputImageDimension):
+        scaling = float(inputImageDimension) / maxDimension
+        width = int(width * scaling)
+        height = int(height * scaling)
+        imageData = imageData.resize((width, height), Image.BICUBIC)
 
-edgeMatrix = EdgeMatrix(edgesNumberMatrix)
+    imageData.save(TEMP_IMG_NAME)
 
-edgeFollower = EdgeFollower(edgeMatrix, width, height)
-traces = timeFunction(edgeFollower.getTraces)
+    edgeDetector = EdgeDetector(TEMP_IMG_NAME)
+    edgesNumberMatrix = timeFunction(edgeDetector.getCannyEdges)
 
-outEdges = IntermediateImage(traces, width, height)
-outEdges.colorAllSegments()
-outEdges.saveImage("edges.jpg")
+    edgeMatrix = EdgeMatrix(edgesNumberMatrix)
 
-traceConverter = TraceConverter(traces)
-lines = timeFunction(traceConverter.getLines)
+    edgeFollower = EdgeFollower(edgeMatrix, width, height)
+    traces = timeFunction(edgeFollower.getTraces)
 
-print ('Lines to connect: ' + str(len(lines)))
+    outEdges = IntermediateImage(traces, width, height)
+    outEdges.colorAllSegments()
+    outEdges.saveImage("edges.jpg")
 
-lineConnector = LineConnector(lines)
-greedyLines = timeFunction(lineConnector.bestOfManyGreedys, 50)
-greedyPoints = [point for sublist in greedyLines for point in sublist]
+    traceConverter = TraceConverter(traces)
+    lines = timeFunction(traceConverter.getLines)
 
-print ('Dots before clean: ' + str(len(greedyPoints)))
-dotCleaner = DotCleanup(greedyPoints, width, height)
-cleanPoints = dotCleaner.getCleanedDots()
+    print ('Lines to connect: ' + str(len(lines)))
+
+    lineConnector = LineConnector(lines)
+    greedyLines = timeFunction(lineConnector.bestOfManyGreedys, 50)
+    greedyPoints = [point for sublist in greedyLines for point in sublist]
+
+    print ('Dots before clean: ' + str(len(greedyPoints)))
+    dotCleaner = DotCleanup(greedyPoints, width, height)
+    cleanPoints = dotCleaner.getCleanedDots()
+    dotsInImage = len(cleanPoints)
+    print('Dots at the moment: ' + str(dotsInImage))
+
 
 print ('Dots in image: ' + str(len(cleanPoints)))
-out = OutputImage(cleanPoints, width, height, True, True)
+out = OutputImage(cleanPoints, width, height, True, False)
 out.saveImage(outPath)
