@@ -13,71 +13,73 @@ from DotCleanup import DotCleanup
 from OutputImage import OutputImage
 from IntermediateImage import IntermediateImage
 
+def makeDotToDot(fullFilePath):
+    fileName = os.path.split(fullFilePath)[-1]
+    outPathJpg = 'out/jpg/' + fileName
+    outPathPdf = 'out/pdf/' + os.path.splitext(fileName)[0] + '.pdf'
+
+    def timeFunction(function, *args):
+        start = time.clock()
+        returnValue = function(*args)
+        end = time.clock()
+        print ('--- ' + str(function.__name__) + ' --- Time: ' + str(end - start) + ' ---')
+        return returnValue
+
+
+    TEMP_IMG_NAME = "temp_in.jpg"
+
+    inputImageDimension = 1200
+    dotsInImage = 1000
+    while(dotsInImage > 700 and inputImageDimension > 300):
+        inputImageDimension -= 200
+        print('Image Dimensions now at: ' + str(inputImageDimension))
+        imageData = Image.open(fullFilePath)
+        width = imageData.width
+        height = imageData.height
+        maxDimension = width if width > height else height
+        if (maxDimension > inputImageDimension):
+            scaling = float(inputImageDimension) / maxDimension
+            width = int(width * scaling)
+            height = int(height * scaling)
+            imageData = imageData.resize((width, height), Image.BICUBIC)
+
+        imageData.save(TEMP_IMG_NAME)
+
+        edgeDetector = EdgeDetector(TEMP_IMG_NAME)
+        edgesNumberMatrix = timeFunction(edgeDetector.getCannyEdges)
+
+        edgeMatrix = EdgeMatrix(edgesNumberMatrix)
+
+        edgeFollower = EdgeFollower(edgeMatrix, width, height)
+        traces = timeFunction(edgeFollower.getTraces)
+
+        outEdges = IntermediateImage(traces, width, height)
+        outEdges.colorAllSegments()
+        outEdges.saveImage("edges.jpg")
+
+        traceConverter = TraceConverter(traces)
+        lines = timeFunction(traceConverter.getLines)
+
+        print ('Lines to connect: ' + str(len(lines)))
+
+        lineConnector = LineConnector(lines)
+        greedyLines = timeFunction(lineConnector.bestOfManyGreedys, 50)
+        greedyPoints = [point for sublist in greedyLines for point in sublist]
+
+        print ('Dots before clean: ' + str(len(greedyPoints)))
+        dotCleaner = DotCleanup(greedyPoints, width, height)
+        cleanPoints = dotCleaner.getCleanedDots()
+        dotsInImage = len(cleanPoints)
+        print('Dots at the moment: ' + str(dotsInImage))
+
+
+    print ('Dots in image: ' + str(len(cleanPoints)))
+    out = OutputImage(cleanPoints, width, height, True, False, outPathPdf)
+    out.saveImage(outPathJpg)
+
+
 arguments = len(sys.argv)
 
 if arguments > 1:
     fullFilePath = sys.argv[1]
-else:
-    fullFilePath = "testimages/simple.jpg"
-
-fileName = os.path.split(fullFilePath)[-1]
-outPath = 'out/' + fileName
-
-def timeFunction(function, *args):
-    start = time.clock()
-    returnValue = function(*args)
-    end = time.clock()
-    print ('--- ' + str(function.__name__) + ' --- Time: ' + str(end - start) + ' ---')
-    return returnValue
-
-
-TEMP_IMG_NAME = "temp_in.jpg"
-
-inputImageDimension = 1200
-dotsInImage = 1000
-while(dotsInImage > 700 and inputImageDimension > 300):
-    inputImageDimension -= 200
-    print('Image Dimensions now at: ' + str(inputImageDimension))
-    imageData = Image.open(fullFilePath)
-    width = imageData.width
-    height = imageData.height
-    maxDimension = width if width > height else height
-    if (maxDimension > inputImageDimension):
-        scaling = float(inputImageDimension) / maxDimension
-        width = int(width * scaling)
-        height = int(height * scaling)
-        imageData = imageData.resize((width, height), Image.BICUBIC)
-
-    imageData.save(TEMP_IMG_NAME)
-
-    edgeDetector = EdgeDetector(TEMP_IMG_NAME)
-    edgesNumberMatrix = timeFunction(edgeDetector.getCannyEdges)
-
-    edgeMatrix = EdgeMatrix(edgesNumberMatrix)
-
-    edgeFollower = EdgeFollower(edgeMatrix, width, height)
-    traces = timeFunction(edgeFollower.getTraces)
-
-    outEdges = IntermediateImage(traces, width, height)
-    outEdges.colorAllSegments()
-    outEdges.saveImage("edges.jpg")
-
-    traceConverter = TraceConverter(traces)
-    lines = timeFunction(traceConverter.getLines)
-
-    print ('Lines to connect: ' + str(len(lines)))
-
-    lineConnector = LineConnector(lines)
-    greedyLines = timeFunction(lineConnector.bestOfManyGreedys, 50)
-    greedyPoints = [point for sublist in greedyLines for point in sublist]
-
-    print ('Dots before clean: ' + str(len(greedyPoints)))
-    dotCleaner = DotCleanup(greedyPoints, width, height)
-    cleanPoints = dotCleaner.getCleanedDots()
-    dotsInImage = len(cleanPoints)
-    print('Dots at the moment: ' + str(dotsInImage))
-
-
-print ('Dots in image: ' + str(len(cleanPoints)))
-out = OutputImage(cleanPoints, width, height, True, False)
-out.saveImage(outPath)
+    makeDotToDot(fullFilePath)

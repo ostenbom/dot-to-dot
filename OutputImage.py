@@ -8,8 +8,8 @@ BASE_LIMIT = 7000
 A3_WIDTH = 842
 A3_HEIGHT = 1191
 
-INITIAL_FONT_SIZE = 8
-MIN_FONT_SIZE = 8
+INITIAL_FONT_SIZE = 6
+MIN_FONT_SIZE = 6
 
 NUMBERS_PER_COLOUR = 100
 WHITE = (255, 255, 255)
@@ -18,7 +18,7 @@ OUTLINE_SPACE = 50
 
 class OutputImage():
 
-    def __init__(self, points, originalWidth, originalHeight, drawLines = False, ensureSpace = True):
+    def __init__(self, points, originalWidth, originalHeight, drawLines = False, ensureSpace = True, pdfOutput = None):
         self.points = points[:]
         self.originalWidth = originalWidth
         self.originalHeight = originalHeight
@@ -38,7 +38,7 @@ class OutputImage():
 
         self.setInitialValuesFromBase(self.base, self.fontSize)
         drawFunc(False, True)
-        self.drawAsPdf(False)
+        self.drawAsPdf(False, pdfOutput)
 
     def setInitialValuesFromBase(self, base, fontSize):
         self.base = base
