@@ -1,7 +1,7 @@
 # dot-to-dot
 Converts images into full dot to dot puzzles.
 
-To use:
+To use, clone the repository with `git clone https://github.com/ostenbom/dot-to-dot.git`, install requirements (you'll particularly need a Cairo binding like cairocffi and Pillow). Then run:
 
 ```
 python Main.py path/to/image.jpg
