@@ -110,7 +110,7 @@ def makeMaxSizeDot(fullFilePath, maxDots):
 
         imageData.save(TEMP_IMG_NAME)
 
-        dotPoints = makeDotToDot(TEMP_IMG_NAME, intermediateSteps = True)
+        dotPoints = makeDotToDot(TEMP_IMG_NAME)
         dotsInImage = len(dotPoints)
 
     out = OutputImage(dotPoints, width, height, True, False, outPathPdf, outPathJpg)
