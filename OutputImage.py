@@ -25,9 +25,9 @@ class OutputImage():
         self.originalWidth = originalWidth
         self.originalHeight = originalHeight
         if not pdfOutput:
-            pdfOutput = "dots.pdf"
+            pdfOutput = "out/dots.pdf"
         if not jpgOutput:
-            jpgOutput = "dots.jpg"
+            jpgOutput = "out/dots.jpg"
 
         self.imageRatio = float(self.originalHeight) / float(self.originalWidth)
 
@@ -76,8 +76,6 @@ class OutputImage():
         self.xScaling = float(imageWidth) / float(self.originalWidth)
         self.yScaling = float(imageHeight) / float(self.originalHeight)
 
-        print ("Dimensions: (" + str(imageWidth) + ", " + str(imageHeight) + ")")
-
         self.image = Image.new("RGB", (int(fullWidth), int(fullHeight)), color=WHITE)
 
         self.draw = ImageDraw.Draw(self.image)
@@ -91,7 +89,7 @@ class OutputImage():
 
     def saveImage(self, path = None):
         if not path:
-            path = 'dots.jpg'
+            path = 'out/dots.jpg'
 
         self.image.save(path)
 
@@ -99,9 +97,7 @@ class OutputImage():
         self.image.show()
 
 
-    def drawAsPdf(self, drawLines, path = None):
-        if not path:
-            path = "dots.pdf"
+    def drawAsPdf(self, drawLines, path):
         ps = cairo.PDFSurface(path, int(self.fullWidth), int(self.fullHeight))
         cr = cairo.Context(ps)
 

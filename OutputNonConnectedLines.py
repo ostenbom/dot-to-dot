@@ -37,8 +37,8 @@ class OutputNonConnectedLines():
     def getImageObject(self):
         return self.image
 
-    def saveImage(self):
-        self.image.save("lines.jpg")
+    def saveImage(self, savePath):
+        self.image.save(savePath)
 
     def showImage(self):
         self.image.show()
