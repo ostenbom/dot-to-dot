@@ -2,3 +2,4 @@ ortools==5.0.3919
 Pillow==3.4.2
 protobuf==3.1.0.post1
 six==1.10.0
+cairocffi>=0.7.2
