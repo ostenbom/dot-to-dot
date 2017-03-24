@@ -1,6 +1,7 @@
 from PIL import Image
 
 NUM_LARGE_SEGMENTS = 300
+WHITE = (255, 255, 255)
 
 class IntermediateImage():
 
@@ -24,6 +25,11 @@ class IntermediateImage():
 
     def showImage(self):
         self.image.show()
+
+    def colorWhiteSegments(self):
+        self.makeImageBlack()
+        for segment in self.segments:
+            self.colorSegment(segment, WHITE)
 
     def colorAllSegments(self):
         self.makeImageBlack()

@@ -129,7 +129,7 @@ class EdgeFollower():
         # Get the linear coefficients for the ahead and behind directions
         behindDirection = self.getBehindDirection(point, trace)
         for ahead in aheadTraces:
-            if len(ahead) > 1:
+            if len(ahead) > 1 and not all([x[0] == ahead[0][0] for x in ahead]):
                 aheadDirections.append(self.aheadDirectionAngle(ahead))
             else:
                 aheadDirections.append(360)
@@ -167,6 +167,9 @@ class EdgeFollower():
     def aheadDirectionAngle(self, ahead):
         xs = [p[0] for p in ahead]
         ys = [p[1] for p in ahead]
+        if len(ahead) == 2:
+            if xs[0] == xs[1]:
+                return 5000
         m, c = np.polyfit(xs, ys, 1)
 
         return m

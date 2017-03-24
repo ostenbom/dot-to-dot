@@ -4,29 +4,45 @@ from PIL import Image, ImageDraw, ImageFont
 
 BASE_IMAGE_WIDTH = 5000
 BASE_LIMIT = 7000
+OUTLINE_SPACE = 40
 
-A3_WIDTH = 842
-A3_HEIGHT = 1191
+A3_WIDTH = 842 - OUTLINE_SPACE * 2
+A3_HEIGHT = 1191 - OUTLINE_SPACE * 2
 
-INITIAL_FONT_SIZE = 6
-MIN_FONT_SIZE = 6
+INITIAL_FONT_SIZE = 5
+MIN_FONT_SIZE = 5
+
+JPEG_SCALING = 3
 
 NUMBERS_PER_COLOUR = 100
 WHITE = (255, 255, 255)
 COLOURS = [(0, 0, 200), (50, 50, 50), (200, 0, 200), (200, 0, 0), (200, 100, 0), (0, 0, 0), (0, 200, 0), (0, 200, 200)]
-OUTLINE_SPACE = 50
 
 class OutputImage():
 
-    def __init__(self, points, originalWidth, originalHeight, drawLines = False, ensureSpace = True, pdfOutput = None):
+    def __init__(self, points, originalWidth, originalHeight, drawLines = False, ensureSpace = True, pdfOutput = None, jpgOutput = None):
         self.points = points[:]
         self.originalWidth = originalWidth
         self.originalHeight = originalHeight
+        if not pdfOutput:
+            pdfOutput = "dots.pdf"
+        if not jpgOutput:
+            jpgOutput = "dots.jpg"
 
         self.imageRatio = float(self.originalHeight) / float(self.originalWidth)
 
         self.base = A3_WIDTH if originalHeight > originalWidth else A3_HEIGHT
-        self.setInitialValuesFromBase(self.base, INITIAL_FONT_SIZE)
+        otherBaseDimension = A3_HEIGHT if originalHeight > originalWidth else A3_WIDTH
+        mainDimension = originalWidth if originalWidth > originalHeight else originalHeight
+        otherDimension = originalHeight if originalWidth > originalHeight else originalWidth
+        baseScaling = float(self.base) / mainDimension
+        if otherDimension * baseScaling > otherBaseDimension:
+            otherDimensionScaling = float(otherBaseDimension) / otherDimension
+            self.base = self.base * otherDimensionScaling
+
+        self.base = self.base * JPEG_SCALING
+        self.fontSize = INITIAL_FONT_SIZE * JPEG_SCALING
+        self.setInitialValuesFromBase(self.base, self.fontSize)
 
         drawFunc = self.drawLines if drawLines else self.drawPoints
 
@@ -38,6 +54,11 @@ class OutputImage():
 
         self.setInitialValuesFromBase(self.base, self.fontSize)
         drawFunc(False, True)
+        self.saveImage(jpgOutput)
+
+        self.base = self.base / JPEG_SCALING
+        self.fontSize = self.fontSize /  JPEG_SCALING
+        self.setInitialValuesFromBase(self.base, self.fontSize)
         self.drawAsPdf(False, pdfOutput)
 
     def setInitialValuesFromBase(self, base, fontSize):
@@ -57,7 +78,7 @@ class OutputImage():
 
         print ("Dimensions: (" + str(imageWidth) + ", " + str(imageHeight) + ")")
 
-        self.image = Image.new("RGB", (fullWidth, int(fullHeight)), color=WHITE)
+        self.image = Image.new("RGB", (int(fullWidth), int(fullHeight)), color=WHITE)
 
         self.draw = ImageDraw.Draw(self.image)
 
@@ -81,7 +102,7 @@ class OutputImage():
     def drawAsPdf(self, drawLines, path = None):
         if not path:
             path = "dots.pdf"
-        ps = cairo.PDFSurface(path, self.fullWidth, self.fullHeight)
+        ps = cairo.PDFSurface(path, int(self.fullWidth), int(self.fullHeight))
         cr = cairo.Context(ps)
 
         cr.set_source_rgb(0, 0, 0)
@@ -172,7 +193,7 @@ class OutputImage():
         x = point[0] * self.xScaling + OUTLINE_SPACE
         y = point[1] * self.yScaling + OUTLINE_SPACE
 
-        pointSize = 2
+        pointSize = 1
 
         r, g, b = self.colourToFloats(colour)
         cr.set_source_rgb(r, g, b)
@@ -186,7 +207,7 @@ class OutputImage():
 
         _, _, textWidth, textHeight, _, _ = cr.text_extents(str(number))
 
-        pointSize = 4
+        pointSize = 2
 
         possibleTextPositions = [
             (pointX + pointSize, pointY + pointSize + textHeight),
@@ -201,7 +222,7 @@ class OutputImage():
         cr.show_text(str(number))
 
     def drawPointWithNumber(self, point, number, color, ensureSpace, savePointPositions):
-        pointSize = 3
+        pointSize = 1
 
         ellipseX = point[0] * self.xScaling + OUTLINE_SPACE
         ellipseY = point[1] * self.yScaling + OUTLINE_SPACE

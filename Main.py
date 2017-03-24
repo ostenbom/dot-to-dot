@@ -12,6 +12,9 @@ from DotCleanup import DotCleanup
 
 from OutputImage import OutputImage
 from IntermediateImage import IntermediateImage
+from OutputNonConnectedLines import OutputNonConnectedLines
+
+MAX_DOTS_IN_IMAGE = 800
 
 def makeDotToDot(fullFilePath):
     fileName = os.path.split(fullFilePath)[-1]
@@ -30,7 +33,7 @@ def makeDotToDot(fullFilePath):
 
     inputImageDimension = 1200
     dotsInImage = 1000
-    while(dotsInImage > 700 and inputImageDimension > 300):
+    while(dotsInImage > MAX_DOTS_IN_IMAGE and inputImageDimension > 300):
         inputImageDimension -= 200
         print('Image Dimensions now at: ' + str(inputImageDimension))
         imageData = Image.open(fullFilePath)
@@ -50,6 +53,10 @@ def makeDotToDot(fullFilePath):
 
         edgeMatrix = EdgeMatrix(edgesNumberMatrix)
 
+        outEdges = IntermediateImage([edgeMatrix.points], width, height)
+        outEdges.colorWhiteSegments()
+        outEdges.saveImage("canny.jpg")
+
         edgeFollower = EdgeFollower(edgeMatrix, width, height)
         traces = timeFunction(edgeFollower.getTraces)
 
@@ -60,12 +67,17 @@ def makeDotToDot(fullFilePath):
         traceConverter = TraceConverter(traces)
         lines = timeFunction(traceConverter.getLines)
 
+        nonConnectedLinesOut = OutputNonConnectedLines(lines, width, height)
+        nonConnectedLinesOut.saveImage()
+
         print ('Lines to connect: ' + str(len(lines)))
 
         lineConnector = LineConnector(lines)
         greedyLines = timeFunction(lineConnector.bestOfManyGreedys, 50)
         greedyPoints = [point for sublist in greedyLines for point in sublist]
 
+        outGreedy = OutputImage(greedyPoints, width, height, True, False, "nonClean.pdf", "nonClean.jpg")
+        
         print ('Dots before clean: ' + str(len(greedyPoints)))
         dotCleaner = DotCleanup(greedyPoints, width, height)
         cleanPoints = dotCleaner.getCleanedDots()
@@ -74,8 +86,7 @@ def makeDotToDot(fullFilePath):
 
 
     print ('Dots in image: ' + str(len(cleanPoints)))
-    out = OutputImage(cleanPoints, width, height, True, False, outPathPdf)
-    out.saveImage(outPathJpg)
+    out = OutputImage(cleanPoints, width, height, True, False, outPathPdf, outPathJpg)
 
 
 arguments = len(sys.argv)
