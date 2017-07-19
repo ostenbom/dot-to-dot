@@ -1,6 +1,8 @@
 # dot-to-dot
 Converts images into full dot to dot puzzles.
 
+Read more about the project **[here](https://medium.com/@oliverstenbom/worlds-largest-dot-to-dot-4babe597dfeb)**
+
 To use, clone the repository with `git clone https://github.com/ostenbom/dot-to-dot.git`, install requirements (you'll particularly need a Cairo binding like cairocffi and Pillow). Then run:
 
 ```
